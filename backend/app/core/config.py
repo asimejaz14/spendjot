@@ -45,6 +45,23 @@ class Settings(BaseSettings):
     # local Postgres container has TLS off, so this defaults False.
     db_ssl: bool = False
 
+    # Public URL of the frontend — used in transactional emails (logo + links).
+    frontend_url: str = "http://localhost:3000"
+
+    # SMTP / outgoing email. Emails are only sent when host + username + password
+    # are all configured (see `emails_enabled`); otherwise sends are skipped.
+    smtp_host: str = ""
+    smtp_port: int = 465
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = "noreply@spendjot.com"
+    smtp_from_name: str = "Spend Jot"
+    smtp_use_tls: bool = True  # implicit TLS (SMTPS) — correct for port 465
+
+    @property
+    def emails_enabled(self) -> bool:
+        return bool(self.smtp_host and self.smtp_username and self.smtp_password)
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def split_cors(cls, value: object) -> object:

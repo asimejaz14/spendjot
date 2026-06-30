@@ -72,7 +72,17 @@ git push -u origin main
 3. When prompted for the **`DATABASE_URL`** of `spendjot-api`, paste the
    `postgresql+asyncpg://…pooler…` value from step 1.
    (`JWT_SECRET_KEY` is auto-generated.)
-4. **Apply** — Render builds both Docker images and deploys.
+4. Also set **`SMTP_PASSWORD`** on `spendjot-api` to the `noreply@spendjot.com`
+   mailbox password (enables the welcome email on signup; leave blank to disable).
+5. **Apply** — Render builds both Docker images and deploys.
+
+### Welcome email
+
+New signups receive a branded welcome email from `noreply@spendjot.com` via SMTP
+over implicit TLS (`server188.web-hosting.com:465`). All settings except the
+password are pre-filled in `render.yaml`; the send is best-effort and runs in the
+background, so a mail outage never blocks signup. If `SMTP_PASSWORD` is blank,
+emails are simply skipped.
 
 On first boot the backend automatically runs `alembic upgrade head` (creating the
 tables and seeding the 6 categories).

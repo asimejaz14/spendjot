@@ -50,6 +50,23 @@ services:
       # Not strictly needed (same-origin via proxy) but set for safety.
       - key: CORS_ORIGINS
         value: https://spendjot-web.onrender.com
+      # Public URL of the site — used in the welcome email (logo + button link).
+      - key: FRONTEND_URL
+        value: https://spendjot-web.onrender.com
+      # Outgoing email (welcome message on signup). Password is a secret → set
+      # it in the dashboard. Emails are simply skipped if the password is blank.
+      - key: SMTP_HOST
+        value: server188.web-hosting.com
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_USERNAME
+        value: noreply@spendjot.com
+      - key: SMTP_FROM_EMAIL
+        value: noreply@spendjot.com
+      - key: SMTP_FROM_NAME
+        value: Spend Jot
+      - key: SMTP_PASSWORD
+        sync: false
 
   # ---------------- Frontend (Next.js) ----------------
   - type: web

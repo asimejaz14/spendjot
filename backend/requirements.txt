@@ -9,6 +9,7 @@ email-validator==2.2.0
 bcrypt==4.2.1
 pyjwt==2.10.1
 python-multipart==0.0.20
+aiosmtplib==3.0.2
 
 # --- dev / test ---
 aiosqlite==0.20.0

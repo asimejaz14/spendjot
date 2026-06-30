@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Cookie, Depends, Response, status
+from fastapi import APIRouter, BackgroundTasks, Cookie, Depends, Response, status
 
 from app.api.deps import CurrentUser, DbSession
 from app.core.config import settings
@@ -14,6 +14,7 @@ from app.schemas.auth import (
 )
 from app.schemas.user import UserOut
 from app.services import auth_service
+from app.services.email_service import send_welcome_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -47,11 +48,16 @@ def _clear_refresh_cookie(response: Response) -> None:
     dependencies=[Depends(signup_rate_limit)],
 )
 async def signup(
-    payload: SignupRequest, db: DbSession, response: Response
+    payload: SignupRequest,
+    db: DbSession,
+    response: Response,
+    background_tasks: BackgroundTasks,
 ) -> TokenResponse:
     user = await auth_service.signup(db, payload)
     refresh = await auth_service.issue_refresh_token(db, user)
     _set_refresh_cookie(response, refresh)
+    # Best-effort welcome email — runs after the response, never blocks signup.
+    background_tasks.add_task(send_welcome_email, user.email, user.display_name)
     return TokenResponse(access_token=create_access_token(user.id))
 
 
