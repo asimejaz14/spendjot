@@ -17,7 +17,7 @@ services:
     dockerfilePath: backend/Dockerfile
     dockerContext: backend
     plan: free
-    region: oregon
+    region: singapore
     healthCheckPath: /health
     autoDeploy: true
     envVars:
@@ -55,7 +55,7 @@ services:
     dockerfilePath: frontend/Dockerfile
     dockerContext: frontend
     plan: free
-    region: oregon
+    region: singapore
     autoDeploy: true
     envVars:
       # Where the Next.js server proxies /api/* (the backend's public URL).
