@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Set-Location \"C:\\\\Users\\\\pc\\\\Desktop\\\\Spend Jot\\\\backend\"; $env:PYTHONPATH=\".\"; .\\\\.venv\\\\Scripts\\\\python.exe \"C:\\\\Users\\\\pc\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-pc-Desktop-Spend-Jot\\\\2f752e89-a29a-42f2-91dd-7d3b8f83b9b3\\\\scratchpad\\\\dbg.py\" 2>&1 | Select-Object -Last 20)",
+      "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:3000/login)",
+      "mcp__Claude_Preview__preview_start",
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { Stop-Process -Id $c.OwningProcess -Force -ErrorAction SilentlyContinue; \"stopped backend on 8000\" } else { \"8000 already free\" }; Start-Sleep -Milliseconds 500; $a = Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue; $b = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; \"port8000_free=$\\(-not $a\\) port3000_free=$\\(-not $b\\)\")",
+      "PowerShell(Set-Location \"C:\\\\Users\\\\pc\\\\Desktop\\\\Spend Jot\"; if \\(-not \\(Test-Path \".env\"\\)\\) { Copy-Item \".env.example\" \".env\" }; docker compose --profile local-db up --build -d 2>&1 | Select-Object -Last 40)",
+      "PowerShell(docker compose --profile local-db ps --format \"table {{.Service}}\\\\t{{.Status}}\" 2>&1)",
+      "Bash(python -c \"import sys,json; print\\(json.load\\(sys.stdin\\)['scripts']\\)\")",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue)",
+      "PowerShell(docker stop spendjot-frontend-1 2>&1 | Out-Null; Start-Sleep -Seconds 2; Write-Output \"frontend container stopped; port 3000 free for dev server\"; Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Measure-Object | ForEach-Object { \"listeners on 3000: $\\($_.Count\\)\" })",
+      "PowerShell(docker stop spendjot-frontend-1 2>&1 | Out-Null; Start-Sleep -Seconds 2; \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Measure-Object\\).Count | ForEach-Object { \"listeners on 3000: $_\" })"
+    ]
+  }
+}

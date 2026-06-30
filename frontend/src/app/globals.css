@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 1rem;
+
+    /* Light theme — brand-derived */
+    --background: 250 100% 99%;
+    --foreground: 255 26% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 255 26% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 255 26% 10%;
+
+    --primary: 262 83% 58%; /* Jot Violet #7C3AED */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 251 91% 95%; /* Lavender */
+    --secondary-foreground: 262 60% 40%;
+
+    --muted: 252 60% 97%; /* Mist */
+    --muted-foreground: 252 8% 46%;
+
+    --accent: 251 91% 95%;
+    --accent-foreground: 262 60% 38%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 252 40% 91%; /* Line */
+    --input: 252 40% 90%;
+    --ring: 262 83% 58%;
+  }
+
+  .dark {
+    --background: 255 26% 7%; /* Ink, deepened */
+    --foreground: 250 40% 96%;
+
+    --card: 255 22% 11%;
+    --card-foreground: 250 40% 96%;
+
+    --popover: 255 22% 11%;
+    --popover-foreground: 250 40% 96%;
+
+    --primary: 255 92% 76%; /* Soft Lilac — brighter on dark */
+    --primary-foreground: 255 30% 12%;
+
+    --secondary: 255 20% 18%;
+    --secondary-foreground: 250 40% 92%;
+
+    --muted: 255 18% 16%;
+    --muted-foreground: 252 12% 66%;
+
+    --accent: 255 20% 20%;
+    --accent-foreground: 250 40% 94%;
+
+    --destructive: 0 62% 52%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 255 16% 22%;
+    --input: 255 16% 24%;
+    --ring: 255 92% 76%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  /* Tabular numbers for money everywhere it matters */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Subtle ambient gradient used behind auth screens */
+.bg-aurora {
+  background:
+    radial-gradient(60% 50% at 20% 10%, rgba(139, 92, 246, 0.18), transparent 60%),
+    radial-gradient(50% 50% at 90% 20%, rgba(79, 70, 229, 0.16), transparent 60%),
+    radial-gradient(60% 60% at 50% 100%, rgba(167, 139, 250, 0.14), transparent 60%);
+}
+
+/* Hide number input spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}

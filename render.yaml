@@ -1,0 +1,65 @@
+# Spend Jot — Render Blueprint (Infrastructure as Code).
+#
+# Render reads this file when you create a "Blueprint" from the GitHub repo and
+# provisions both services. Secrets (DATABASE_URL, JWT_SECRET_KEY) are marked
+# `sync: false` and must be filled in the Render dashboard — they are never
+# committed to git.
+#
+# Topology:
+#   spendjot-web  (Next.js)  → public site; reverse-proxies /api/* to the API
+#   spendjot-api  (FastAPI)  → talks to Supabase Postgres
+#
+services:
+  # ---------------- Backend API (FastAPI) ----------------
+  - type: web
+    name: spendjot-api
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # Supabase Postgres connection string (asyncpg). SET IN DASHBOARD.
+      # Use the Supabase "Session pooler" URI, converted to +asyncpg, e.g.:
+      #   postgresql+asyncpg://postgres.<ref>:<encoded-pw>@aws-0-<region>.pooler.supabase.com:5432/postgres
+      - key: DATABASE_URL
+        sync: false
+      # Auto-generated, stable secret for signing JWTs.
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_DAYS
+        value: "10"
+      - key: REFRESH_TOKEN_EXPIRE_DAYS
+        value: "30"
+      - key: MAX_FAILED_LOGINS
+        value: "5"
+      - key: LOCKOUT_MINUTES
+        value: "5"
+      # Behind Render's HTTPS, so the refresh cookie must be Secure.
+      - key: COOKIE_SECURE
+        value: "true"
+      # Don't seed the demo user/expenses in production (categories still come
+      # from the Alembic migration). Flip to "true" for a quick populated demo.
+      - key: SEED_DEMO_DATA
+        value: "false"
+      # Not strictly needed (same-origin via proxy) but set for safety.
+      - key: CORS_ORIGINS
+        value: https://spendjot-web.onrender.com
+
+  # ---------------- Frontend (Next.js) ----------------
+  - type: web
+    name: spendjot-web
+    runtime: docker
+    dockerfilePath: frontend/Dockerfile
+    dockerContext: frontend
+    plan: free
+    region: oregon
+    autoDeploy: true
+    envVars:
+      # Where the Next.js server proxies /api/* (the backend's public URL).
+      - key: BACKEND_INTERNAL_URL
+        value: https://spendjot-api.onrender.com
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
