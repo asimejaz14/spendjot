@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     # Cookie security (set True behind HTTPS)
     cookie_secure: bool = False
 
+    # Encrypt the DB connection with TLS (sslmode=require — encrypt without CA
+    # verification). Needed for Supabase's pooler over the public internet; the
+    # local Postgres container has TLS off, so this defaults False.
+    db_ssl: bool = False
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def split_cors(cls, value: object) -> object:

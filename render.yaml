@@ -40,6 +40,9 @@ services:
       # Behind Render's HTTPS, so the refresh cookie must be Secure.
       - key: COOKIE_SECURE
         value: "true"
+      # Encrypt the connection to Supabase's pooler (sslmode=require).
+      - key: DB_SSL
+        value: "true"
       # Don't seed the demo user/expenses in production (categories still come
       # from the Alembic migration). Flip to "true" for a quick populated demo.
       - key: SEED_DEMO_DATA

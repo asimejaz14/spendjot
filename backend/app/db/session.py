@@ -1,6 +1,7 @@
 """Async engine + session factory."""
 from __future__ import annotations
 
+import ssl
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
@@ -18,6 +19,13 @@ from app.core.config import settings
 connect_args: dict = {}
 if settings.database_url.startswith("postgresql+asyncpg"):
     connect_args["statement_cache_size"] = 0
+    if settings.db_ssl:
+        # sslmode=require: encrypt the connection but skip CA verification —
+        # Supabase's pooler presents a cert from its own (non-public) CA.
+        ssl_ctx = ssl.create_default_context()
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = ssl.CERT_NONE
+        connect_args["ssl"] = ssl_ctx
 
 engine = create_async_engine(
     settings.database_url,
