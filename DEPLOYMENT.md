@@ -1,14 +1,19 @@
-# Deploying Spend Jot (Render + Supabase)
+# Deploying Spend Jot (Vercel + Render + Supabase)
 
-This guide deploys two services to **Render** (frontend + backend) backed by your
-**Supabase** Postgres database.
+The **frontend (Next.js) runs on Vercel** and the **backend (FastAPI) runs on
+Render**, backed by your **Supabase** Postgres database.
 
 ```
-Browser ──HTTPS──> spendjot-web (Next.js)  ──/api/* proxy──> spendjot-api (FastAPI) ──> Supabase Postgres
+Browser ──HTTPS──> spendjot.vercel.app (Next.js) ──/api/* proxy──> spendjot-api.onrender.com (FastAPI) ──> Supabase Postgres
 ```
 
 The Next.js app reverse-proxies `/api/*` to the backend, so the browser only ever
 talks to one origin: **no CORS, and the auth refresh cookie stays first-party.**
+
+**Frontend on Vercel:** import the repo, set **Root Directory = `frontend`**, leave
+`NEXT_PUBLIC_API_BASE_URL` unset (the proxy handles the API). The proxy target
+defaults to `https://spendjot-api.onrender.com` (baked in `next.config.mjs`);
+override with a `BACKEND_INTERNAL_URL` env var in Vercel if the API URL changes.
 
 ---
 
