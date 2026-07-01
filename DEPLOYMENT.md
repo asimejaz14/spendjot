@@ -77,17 +77,25 @@ git push -u origin main
 3. When prompted for the **`DATABASE_URL`** of `spendjot-api`, paste the
    `postgresql+asyncpg://…pooler…` value from step 1.
    (`JWT_SECRET_KEY` is auto-generated.)
-4. Also set **`SMTP_PASSWORD`** on `spendjot-api` to the `noreply@spendjot.com`
-   mailbox password (enables the welcome email on signup; leave blank to disable).
+4. Also set **`RESEND_API_KEY`** on `spendjot-api` to your Resend API key
+   (enables the welcome email on signup; leave blank to disable).
 5. **Apply** — Render builds both Docker images and deploys.
 
 ### Welcome email
 
-New signups receive a branded welcome email from `noreply@spendjot.com` via SMTP
-over implicit TLS (`server188.web-hosting.com:465`). All settings except the
-password are pre-filled in `render.yaml`; the send is best-effort and runs in the
-background, so a mail outage never blocks signup. If `SMTP_PASSWORD` is blank,
-emails are simply skipped.
+New signups receive a branded welcome email from `noreply@spendjot.com` via the
+**Resend HTTP API**. Render blocks outbound SMTP ports (25/465/587), so the SMTP
+transport won't work there — the code uses Resend's HTTPS API instead (with SMTP
+kept only as a fallback for SMTP-friendly hosts). The send is best-effort and runs
+in the background, so a mail outage never blocks signup. If `RESEND_API_KEY` is
+blank, emails are simply skipped.
+
+**Resend setup:** in the Resend dashboard, add and verify the domain `spendjot.com`
+(Domains → Add Domain). Resend gives a small set of DNS records — an MX + TXT (SPF)
+for a `send.` sending subdomain, and a TXT (DKIM). Add those in the Namecheap
+hosting **cPanel → Zone Editor** alongside the existing records; they use a
+*subdomain*, so your existing apex MX (mailbox) records are untouched. Once Resend
+shows the domain **Verified**, set `RESEND_API_KEY` on the Render service.
 
 On first boot the backend automatically runs `alembic upgrade head` (creating the
 tables and seeding the 6 categories).

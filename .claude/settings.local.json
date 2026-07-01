@@ -10,7 +10,18 @@
       "Bash(python -c \"import sys,json; print\\(json.load\\(sys.stdin\\)['scripts']\\)\")",
       "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue)",
       "PowerShell(docker stop spendjot-frontend-1 2>&1 | Out-Null; Start-Sleep -Seconds 2; Write-Output \"frontend container stopped; port 3000 free for dev server\"; Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Measure-Object | ForEach-Object { \"listeners on 3000: $\\($_.Count\\)\" })",
-      "PowerShell(docker stop spendjot-frontend-1 2>&1 | Out-Null; Start-Sleep -Seconds 2; \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Measure-Object\\).Count | ForEach-Object { \"listeners on 3000: $_\" })"
+      "PowerShell(docker stop spendjot-frontend-1 2>&1 | Out-Null; Start-Sleep -Seconds 2; \\(Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Measure-Object\\).Count | ForEach-Object { \"listeners on 3000: $_\" })",
+      "PowerShell(Resolve-DnsName -Name spendjot.com -Type A -Server 8.8.8.8)",
+      "PowerShell(Resolve-DnsName -Name spendjot.com -Type MX -Server 8.8.8.8)",
+      "PowerShell(Resolve-DnsName -Name spendjot.com -Type A -Server dns1.namecheaphosting.com)",
+      "PowerShell(Resolve-DnsName -Name spendjot.com -Type A -Server dns1.namecheaphosting.com | Where-Object {$_.Type -eq 'A'} | Select-Object Name, IPAddress, TTL)",
+      "PowerShell(Resolve-DnsName -Name spendjot.com -Type A -Server dns2.namecheaphosting.com | Where-Object {$_.Type -eq 'A'} | Select-Object Name, IPAddress, TTL)",
+      "PowerShell(Resolve-DnsName -Name spendjot.com -Type A -Server dns1.namecheaphosting.com | Where-Object {$_.Type -eq 'A'} | Select-Object Name, IPAddress; \"---\"; Resolve-DnsName -Name spendjot.com -Type A -Server 8.8.8.8 | Where-Object {$_.Type -eq 'A'} | Select-Object Name, IPAddress)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://spendjot.com\" -Headers @{Host=\"spendjot.com\"} -MaximumRedirection 0 -TimeoutSec 20 -SkipCertificateCheck -ErrorAction Stop; \"STATUS: $\\($r.StatusCode\\)\"; $r.Headers[\"server\"]; $r.Headers[\"x-vercel-id\"] } catch { $resp = $_.Exception.Response; if \\($resp\\) { \"STATUS: $\\([int]$resp.StatusCode\\)\"; \"server: $\\($resp.Headers['server']\\)\"; \"x-vercel-id: $\\($resp.Headers['x-vercel-id']\\)\" } else { \"ERR: $\\($_.Exception.Message\\)\" } })",
+      "PowerShell(curl.exe -s -o NUL -w \"categories\\(expect 401\\): %{http_code}\\\\n\" --resolve spendjot.com:443:216.198.79.1 https://spendjot.com/api/v1/categories)",
+      "PowerShell(curl.exe -s -o NUL -w \"health-via-api: %{http_code}\\\\n\" --resolve spendjot.com:443:216.198.79.1 https://spendjot.com/api/v1/auth/refresh -X POST)",
+      "PowerShell(python -m py_compile \"C:\\\\Users\\\\pc\\\\Desktop\\\\Spend Jot\\\\backend\\\\app\\\\services\\\\email_service.py\" \"C:\\\\Users\\\\pc\\\\Desktop\\\\Spend Jot\\\\backend\\\\app\\\\core\\\\config.py\")",
+      "PowerShell(if \\($?\\) { \"COMPILE OK\" })"
     ]
   }
 }

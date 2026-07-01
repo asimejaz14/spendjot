@@ -1,7 +1,10 @@
-"""Transactional email (SMTP over implicit TLS, e.g. port 465).
+"""Transactional email.
 
-Sends are best-effort: if SMTP isn't configured or a send fails, we log and move
-on — a signup must never fail because the mail server is unreachable.
+Two transports, preferred in order: the Resend HTTP API (works where outbound
+SMTP ports are blocked, e.g. Render), then SMTP over implicit TLS (port 465).
+
+Sends are best-effort: if email isn't configured or a send fails, we log and move
+on — a signup must never fail because the mail provider is unreachable.
 """
 from __future__ import annotations
 
@@ -9,6 +12,7 @@ import logging
 from email.message import EmailMessage
 
 import aiosmtplib
+import httpx
 
 from app.core.config import settings
 
@@ -25,11 +29,53 @@ _FONT_BODY = "'Inter','Segoe UI',Roboto,Helvetica,Arial,sans-serif"
 
 
 async def send_email(*, to: str, subject: str, html: str, text: str) -> bool:
-    """Send one email. Returns True if sent, False if skipped/failed."""
+    """Send one email via the best available transport.
+
+    Returns True if sent, False if skipped/failed. Never raises — a mail outage
+    must not break the request that triggered it.
+    """
     if not settings.emails_enabled:
-        logger.info("Email skipped (SMTP not configured): to=%s subject=%s", to, subject)
+        logger.info("Email skipped (no transport configured): to=%s subject=%s", to, subject)
         return False
 
+    if settings.resend_api_key:
+        return await _send_via_resend(to=to, subject=subject, html=html, text=text)
+    return await _send_via_smtp(to=to, subject=subject, html=html, text=text)
+
+
+async def _send_via_resend(*, to: str, subject: str, html: str, text: str) -> bool:
+    """Send through the Resend HTTP API (https://resend.com/docs/api-reference)."""
+    payload = {
+        "from": f"{settings.smtp_from_name} <{settings.smtp_from_email}>",
+        "to": [to],
+        "subject": subject,
+        "html": html,
+        "text": text,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            resp = await client.post(
+                "https://api.resend.com/emails",
+                headers={"Authorization": f"Bearer {settings.resend_api_key}"},
+                json=payload,
+            )
+        if resp.is_success:
+            logger.info(
+                "Email sent via Resend: to=%s subject=%s id=%s",
+                to, subject, resp.json().get("id"),
+            )
+            return True
+        logger.warning(
+            "Resend send failed: to=%s status=%s body=%s", to, resp.status_code, resp.text
+        )
+        return False
+    except Exception as exc:  # noqa: BLE001 — never let email break the request
+        logger.warning("Resend send error: to=%s error=%s", to, exc)
+        return False
+
+
+async def _send_via_smtp(*, to: str, subject: str, html: str, text: str) -> bool:
+    """Send through SMTP over implicit TLS (port 465)."""
     message = EmailMessage()
     message["From"] = f"{settings.smtp_from_name} <{settings.smtp_from_email}>"
     message["To"] = to
@@ -47,10 +93,10 @@ async def send_email(*, to: str, subject: str, html: str, text: str) -> bool:
             use_tls=settings.smtp_use_tls,   # implicit TLS for port 465
             timeout=20,
         )
-        logger.info("Email sent: to=%s subject=%s", to, subject)
+        logger.info("Email sent via SMTP: to=%s subject=%s", to, subject)
         return True
     except Exception as exc:  # noqa: BLE001 — never let email break the request
-        logger.warning("Email send failed: to=%s error=%s", to, exc)
+        logger.warning("SMTP send failed: to=%s error=%s", to, exc)
         return False
 
 

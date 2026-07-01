@@ -54,20 +54,16 @@ services:
       # Public URL of the site (Vercel) — used in the welcome email (logo + link).
       - key: FRONTEND_URL
         value: https://spendjot.vercel.app
-      # Outgoing email (welcome message on signup). Password is a secret → set
-      # it in the dashboard. Emails are simply skipped if the password is blank.
-      - key: SMTP_HOST
-        value: server188.web-hosting.com
-      - key: SMTP_PORT
-        value: "465"
-      - key: SMTP_USERNAME
-        value: noreply@spendjot.com
+      # Outgoing email (welcome message on signup) via the Resend HTTP API.
+      # Render blocks outbound SMTP ports (25/465/587), so SMTP won't work here —
+      # Resend's HTTPS API is used instead. The API key is a secret → set it in
+      # the dashboard. Emails are simply skipped if the key is blank.
+      - key: RESEND_API_KEY
+        sync: false
       - key: SMTP_FROM_EMAIL
         value: noreply@spendjot.com
       - key: SMTP_FROM_NAME
         value: Spend Jot
-      - key: SMTP_PASSWORD
-        sync: false
 
   # The frontend now lives on Vercel (Root Directory = frontend). It reverse-
   # proxies /api/* to this API via the default target baked into next.config.mjs

@@ -48,19 +48,31 @@ class Settings(BaseSettings):
     # Public URL of the frontend — used in transactional emails (logo + links).
     frontend_url: str = "http://localhost:3000"
 
-    # SMTP / outgoing email. Emails are only sent when host + username + password
-    # are all configured (see `emails_enabled`); otherwise sends are skipped.
+    # Outgoing email. Two transports, tried in this order:
+    #   1. Resend HTTP API (preferred) — works on hosts that block SMTP ports
+    #      outbound, e.g. Render (25/465/587 are all blocked there).
+    #   2. SMTP over implicit TLS (port 465) — fallback for environments where
+    #      outbound SMTP is allowed.
+    # Emails are only sent when at least one transport is configured (see
+    # `emails_enabled`); otherwise sends are skipped (never blocks signup).
+    resend_api_key: str = ""
+
     smtp_host: str = ""
     smtp_port: int = 465
     smtp_username: str = ""
     smtp_password: str = ""
+    smtp_use_tls: bool = True  # implicit TLS (SMTPS) — correct for port 465
+
+    # From identity, shared by both transports.
     smtp_from_email: str = "noreply@spendjot.com"
     smtp_from_name: str = "Spend Jot"
-    smtp_use_tls: bool = True  # implicit TLS (SMTPS) — correct for port 465
 
     @property
     def emails_enabled(self) -> bool:
-        return bool(self.smtp_host and self.smtp_username and self.smtp_password)
+        return bool(
+            self.resend_api_key
+            or (self.smtp_host and self.smtp_username and self.smtp_password)
+        )
 
     @field_validator("cors_origins", mode="before")
     @classmethod
