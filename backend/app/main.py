@@ -26,7 +26,9 @@ app.add_middleware(
 )
 
 
-@app.get("/health", tags=["meta"])
+# Accept HEAD as well as GET: many uptime monitors (UptimeRobot, etc.) default to
+# HEAD, and FastAPI's @app.get would otherwise 405 those probes.
+@app.api_route("/health", methods=["GET", "HEAD"], tags=["meta"])
 async def health() -> dict:
     return {"status": "ok"}
 
