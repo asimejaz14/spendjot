@@ -1,8 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Enables a small standalone server output for the Docker image.
-  output: "standalone",
+  // Standalone output is for the self-hosted Docker image (Render/local). Vercel
+  // uses its own build output, so skip it there (VERCEL=1 is set during Vercel builds).
+  output: process.env.VERCEL ? undefined : "standalone",
   eslint: {
     // Lint is run separately; don't fail production builds on lint warnings.
     ignoreDuringBuilds: true,
