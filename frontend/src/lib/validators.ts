@@ -15,7 +15,7 @@ export const signupSchema = z
   .object({
     email: z.string().trim().email("Please enter a valid email address."),
     phone,
-    display_name: z.string().trim().max(120).optional().or(z.literal("")),
+    display_name: z.string().trim().min(1, "Please enter your name.").max(120),
     pin,
     confirm_pin: z.string(),
   })

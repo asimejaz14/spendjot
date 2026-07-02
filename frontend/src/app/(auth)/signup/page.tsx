@@ -49,10 +49,11 @@ export default function SignupPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="display_name">
-            Name <span className="text-muted-foreground">(optional)</span>
-          </Label>
-          <Input id="display_name" placeholder="Asim" {...register("display_name")} />
+          <Label htmlFor="display_name">Name</Label>
+          <Input id="display_name" placeholder="John Doe" {...register("display_name")} />
+          {errors.display_name && (
+            <p className="text-xs font-medium text-destructive">{errors.display_name.message}</p>
+          )}
         </div>
 
         <div className="space-y-1.5">
