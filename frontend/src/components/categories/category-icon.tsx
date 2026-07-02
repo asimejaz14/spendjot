@@ -2,6 +2,7 @@ import {
   Clapperboard,
   Plane,
   Shapes,
+  ShoppingBasket,
   Utensils,
   Zap,
   type LucideProps,
@@ -32,6 +33,7 @@ function ShishaIcon({ className, strokeWidth = 2, ...props }: LucideProps) {
 
 const ICONS: Record<string, React.ComponentType<LucideProps>> = {
   food: Utensils,
+  grocery: ShoppingBasket,
   utility: Zap,
   shisha: ShishaIcon,
   entertainment: Clapperboard,
