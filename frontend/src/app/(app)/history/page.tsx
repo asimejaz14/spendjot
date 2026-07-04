@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { MonthlyBar } from "@/components/dashboard/monthly-bar";
 import { ExpenseList } from "@/components/expense/expense-list";
@@ -26,7 +26,22 @@ import {
   type ExpenseQueryParams,
 } from "@/lib/queries";
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 10;
+
+/** Page numbers to render, with "…" gaps for long ranges (e.g. 1 … 4 5 6 … 20). */
+function getPageItems(current: number, total: number): (number | "ellipsis")[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  const items: (number | "ellipsis")[] = [1];
+  const left = Math.max(2, current - 1);
+  const right = Math.min(total - 1, current + 1);
+  if (left > 2) items.push("ellipsis");
+  for (let i = left; i <= right; i++) items.push(i);
+  if (right < total - 1) items.push("ellipsis");
+  items.push(total);
+  return items;
+}
 
 export default function HistoryPage() {
   const { data: categories } = useCategories();
@@ -184,27 +199,56 @@ export default function HistoryPage() {
             <>
               <ExpenseList expenses={data.items} />
               {totalPages > 1 && (
-                <div className="mt-4 flex items-center justify-between">
+                <nav
+                  aria-label="Pagination"
+                  className="mt-5 flex flex-wrap items-center justify-center gap-1.5"
+                >
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="icon"
+                    className="h-9 w-9"
                     disabled={page <= 1}
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    aria-label="Previous page"
                   >
-                    Previous
+                    <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <span className="text-sm text-muted-foreground">
-                    Page {page} of {totalPages}
-                  </span>
+
+                  {getPageItems(page, totalPages).map((item, i) =>
+                    item === "ellipsis" ? (
+                      <span
+                        key={`ellipsis-${i}`}
+                        className="px-1 text-sm text-muted-foreground"
+                        aria-hidden
+                      >
+                        …
+                      </span>
+                    ) : (
+                      <Button
+                        key={item}
+                        variant={item === page ? "brand" : "outline"}
+                        size="icon"
+                        className="tnum h-9 w-9"
+                        aria-label={`Page ${item}`}
+                        aria-current={item === page ? "page" : undefined}
+                        onClick={() => setPage(item)}
+                      >
+                        {item}
+                      </Button>
+                    ),
+                  )}
+
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="icon"
+                    className="h-9 w-9"
                     disabled={page >= totalPages}
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    aria-label="Next page"
                   >
-                    Next
+                    <ChevronRight className="h-4 w-4" />
                   </Button>
-                </div>
+                </nav>
               )}
             </>
           ) : (
