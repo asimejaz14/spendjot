@@ -1,10 +1,12 @@
 import {
   Clapperboard,
+  PawPrint,
   Plane,
   Shapes,
   ShoppingBasket,
   Stethoscope,
   Utensils,
+  Wrench,
   Zap,
   type LucideProps,
 } from "lucide-react";
@@ -37,6 +39,8 @@ const ICONS: Record<string, React.ComponentType<LucideProps>> = {
   grocery: ShoppingBasket,
   utility: Zap,
   medical: Stethoscope,
+  maintenance: Wrench,
+  pets: PawPrint,
   shisha: ShishaIcon,
   entertainment: Clapperboard,
   travel: Plane,

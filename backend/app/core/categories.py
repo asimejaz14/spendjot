@@ -9,6 +9,8 @@ SEED_CATEGORIES: list[dict] = [
     {"id": 8, "slug": "medical", "name": "Medical", "icon": "medical", "sort_order": 25},
     {"id": 3, "slug": "shisha", "name": "Shisha", "icon": "shisha", "sort_order": 30},
     {"id": 4, "slug": "entertainment", "name": "Entertainment", "icon": "entertainment", "sort_order": 40},
+    {"id": 9, "slug": "maintenance", "name": "Bike/Car Maintenance", "icon": "maintenance", "sort_order": 45},
     {"id": 5, "slug": "travel", "name": "Travel", "icon": "travel", "sort_order": 50},
+    {"id": 10, "slug": "pets", "name": "Pets", "icon": "pets", "sort_order": 55},
     {"id": 6, "slug": "misc", "name": "Miscellaneous", "icon": "misc", "sort_order": 60},
 ]
