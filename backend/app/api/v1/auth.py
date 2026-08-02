@@ -4,17 +4,19 @@ from fastapi import APIRouter, BackgroundTasks, Cookie, Depends, Response, statu
 
 from app.api.deps import CurrentUser, DbSession
 from app.core.config import settings
-from app.core.rate_limit import login_rate_limit, signup_rate_limit
+from app.core.rate_limit import forgot_pin_rate_limit, login_rate_limit, signup_rate_limit
 from app.core.security import create_access_token
 from app.schemas.auth import (
     ChangePinRequest,
+    ForgotPinRequest,
     LoginRequest,
+    ResetPinRequest,
     SignupRequest,
     TokenResponse,
 )
 from app.schemas.user import UserOut
-from app.services import auth_service
-from app.services.email_service import send_welcome_email
+from app.services import auth_service, pin_reset_service
+from app.services.email_service import send_pin_reset_email, send_welcome_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -106,3 +108,32 @@ async def change_pin(
         db, current_user, payload.current_pin, payload.new_pin
     )
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/forgot-pin", dependencies=[Depends(forgot_pin_rate_limit)])
+async def forgot_pin(
+    payload: ForgotPinRequest, db: DbSession, background_tasks: BackgroundTasks
+) -> dict:
+    # Always respond the same way — never reveal whether the email is registered.
+    user, code = await pin_reset_service.request_reset(db, payload.email)
+    if user and code:
+        background_tasks.add_task(
+            send_pin_reset_email, user.email, user.display_name, code
+        )
+    return {"message": "If an account exists for that email, we've sent a reset code."}
+
+
+@router.post(
+    "/reset-pin",
+    response_model=TokenResponse,
+    dependencies=[Depends(login_rate_limit)],
+)
+async def reset_pin(
+    payload: ResetPinRequest, db: DbSession, response: Response
+) -> TokenResponse:
+    user = await pin_reset_service.reset_pin(
+        db, payload.email, payload.code, payload.new_pin
+    )
+    refresh = await auth_service.issue_refresh_token(db, user)
+    _set_refresh_cookie(response, refresh)
+    return TokenResponse(access_token=create_access_token(user.id))

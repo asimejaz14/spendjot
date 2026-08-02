@@ -36,6 +36,25 @@ export const loginSchema = z.object({
 
 export type LoginValues = z.infer<typeof loginSchema>;
 
+export const forgotPinSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email address."),
+});
+
+export type ForgotPinValues = z.infer<typeof forgotPinSchema>;
+
+export const resetPinSchema = z
+  .object({
+    code: z.string().regex(/^\d{6}$/, "Enter the 6-digit code from your email."),
+    new_pin: pin,
+    confirm_pin: z.string(),
+  })
+  .refine((d) => d.new_pin === d.confirm_pin, {
+    message: "Both PINs must match.",
+    path: ["confirm_pin"],
+  });
+
+export type ResetPinValues = z.infer<typeof resetPinSchema>;
+
 export const changePinSchema = z
   .object({
     current_pin: pin,

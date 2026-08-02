@@ -359,3 +359,91 @@ async def send_weekly_recap_email(
 ) -> bool:
     subject, html, text = build_weekly_recap_email(display_name, stats)
     return await send_email(to=to_email, subject=subject, html=html, text=text)
+
+
+def build_pin_reset_email(
+    display_name: str | None, code: str, minutes: int
+) -> tuple[str, str, str]:
+    """Return (subject, html, text) for the forgot-PIN one-time code."""
+    name = _first_name(display_name)
+    greeting = f"Hi {name}," if name else "Hi,"
+    app_url = settings.frontend_url.rstrip("/")
+    logo_url = f"{app_url}/brand/icon-png/spendjot-icon-256.png"
+    subject = "Your Spend Jot PIN reset code"
+
+    text = (
+        f"{greeting}\n\n"
+        f"Your Spend Jot PIN reset code is: {code}\n\n"
+        f"It expires in {minutes} minutes. Enter it in the app to set a new PIN.\n\n"
+        "If you didn't request this, you can safely ignore this email — your PIN "
+        "won't change.\n\n"
+        "— The Spend Jot team"
+    )
+
+    html = f"""\
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{subject}</title>
+</head>
+<body style="margin:0;padding:0;background:{_MIST};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+         style="background:{_MIST};padding:32px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+               style="max-width:480px;background:#ffffff;border-radius:20px;overflow:hidden;
+                      border:1px solid #E7E3F5;font-family:{_FONT_BODY};">
+          <tr>
+            <td align="center"
+                style="background:{_VIOLET};background-image:{_GRADIENT};padding:36px 24px;">
+              <img src="{logo_url}" width="60" height="60" alt="Spend Jot"
+                   style="display:block;border:0;border-radius:16px;margin:0 auto 14px;">
+              <div style="font-family:{_FONT_HEAD};font-size:24px;font-weight:700;
+                          color:#ffffff;letter-spacing:-0.01em;">
+                Spend<span style="color:#E9D5FF;">Jot</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:34px 32px 6px;">
+              <h1 style="margin:0 0 10px;font-family:{_FONT_HEAD};font-size:20px;
+                         font-weight:700;color:{_INK};">Reset your PIN</h1>
+              <p style="margin:0 0 18px;font-size:15px;line-height:1.6;color:{_MUTED};">
+                {greeting} use this code to set a new PIN:
+              </p>
+              <div style="text-align:center;background:{_MIST};border:1px solid #E7E3F5;
+                          border-radius:14px;padding:18px 12px;">
+                <div style="font-family:{_FONT_HEAD};font-size:34px;font-weight:700;
+                            letter-spacing:8px;color:{_INK};">{code}</div>
+              </div>
+              <p style="margin:16px 0 0;font-size:13px;line-height:1.6;color:{_MUTED};">
+                This code expires in {minutes} minutes. If you didn't request it, you can
+                safely ignore this email — your PIN won't change.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:22px 32px;background:{_MIST};border-top:1px solid #E7E3F5;">
+              <p style="margin:0;font-size:12px;line-height:1.5;color:#9A95AD;text-align:center;">
+                For your security, never share this code with anyone.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
+
+    return subject, html, text
+
+
+async def send_pin_reset_email(to_email: str, display_name: str | None, code: str) -> bool:
+    subject, html, text = build_pin_reset_email(
+        display_name, code, settings.otp_expire_minutes
+    )
+    return await send_email(to=to_email, subject=subject, html=html, text=text)

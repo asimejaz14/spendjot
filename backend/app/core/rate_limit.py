@@ -48,3 +48,5 @@ def rate_limiter(times: int, seconds: int) -> RateDependency:
 
 login_rate_limit: RateDependency = rate_limiter(times=20, seconds=60)
 signup_rate_limit: RateDependency = rate_limiter(times=10, seconds=60)
+# Forgot-PIN: cap code requests to blunt email bombing / enumeration probing.
+forgot_pin_rate_limit: RateDependency = rate_limiter(times=5, seconds=300)

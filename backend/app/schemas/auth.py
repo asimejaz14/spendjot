@@ -57,6 +57,28 @@ class ChangePinRequest(BaseModel):
         return _validate_pin(v)
 
 
+class ForgotPinRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPinRequest(BaseModel):
+    email: EmailStr
+    code: str = Field(min_length=6, max_length=6)
+    new_pin: str = Field(min_length=6, max_length=6)
+
+    @field_validator("code")
+    @classmethod
+    def check_code(cls, v: str) -> str:
+        if not PIN_PATTERN.match(v):
+            raise ValueError("Enter the 6-digit code from your email.")
+        return v
+
+    @field_validator("new_pin")
+    @classmethod
+    def check_pin(cls, v: str) -> str:
+        return _validate_pin(v)
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"

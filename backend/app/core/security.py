@@ -29,6 +29,12 @@ def verify_pin(pin: str, pin_hash: str) -> bool:
         return False
 
 
+# ----- One-time codes (forgot-PIN email OTP) --------------------------------
+def generate_otp() -> str:
+    """A random 6-digit numeric code. Stored hashed; short-lived + attempt-capped."""
+    return f"{secrets.randbelow(1_000_000):06d}"
+
+
 # ----- Access tokens (JWT) ---------------------------------------------------
 def create_access_token(user_id: uuid.UUID) -> str:
     now = datetime.now(timezone.utc)

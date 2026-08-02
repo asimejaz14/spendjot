@@ -142,6 +142,20 @@ export function useChangePin() {
   });
 }
 
+export function useForgotPin() {
+  return useMutation({
+    mutationFn: async (email: string) =>
+      (await api.post("/auth/forgot-pin", { email })).data,
+  });
+}
+
+export function useResetPin() {
+  return useMutation({
+    mutationFn: async (payload: { email: string; code: string; new_pin: string }) =>
+      (await api.post<{ access_token: string }>("/auth/reset-pin", payload)).data,
+  });
+}
+
 export function useBudgets() {
   return useQuery({
     queryKey: queryKeys.budgets,

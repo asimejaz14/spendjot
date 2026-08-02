@@ -62,7 +62,15 @@ export default function LoginPage() {
         </div>
 
         <div className="space-y-2">
-          <Label>PIN</Label>
+          <div className="flex items-center justify-between">
+            <Label>PIN</Label>
+            <Link
+              href="/forgot-pin"
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              Forgot PIN?
+            </Link>
+          </div>
           <Controller
             control={control}
             name="pin"

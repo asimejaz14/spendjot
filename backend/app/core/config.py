@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     lockout_minutes: int = 5
     rate_limit_enabled: bool = True
 
+    # Forgot-PIN email OTP
+    otp_expire_minutes: int = 10
+    otp_max_attempts: int = 5
+
     # CORS — comma-separated string in env, parsed to a list.
     # NoDecode stops pydantic-settings from JSON-parsing the env value so the
     # validator below can split it on commas.
