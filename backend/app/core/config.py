@@ -67,6 +67,11 @@ class Settings(BaseSettings):
     smtp_from_email: str = "noreply@spendjot.com"
     smtp_from_name: str = "Spend Jot"
 
+    # Shared secret guarding the internal cron endpoints (e.g. the weekly recap).
+    # Empty disables those endpoints entirely; when set, callers must send a
+    # matching `X-Cron-Secret` header.
+    cron_secret: str = ""
+
     @property
     def emails_enabled(self) -> bool:
         return bool(

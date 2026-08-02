@@ -64,6 +64,12 @@ services:
         value: noreply@spendjot.com
       - key: SMTP_FROM_NAME
         value: Spend Jot
+      # Shared secret for the weekly-recap cron endpoint (POST /internal/weekly-recap).
+      # Set the SAME value as a GitHub Actions repo secret named CRON_SECRET so the
+      # scheduled workflow (.github/workflows/weekly-recap.yml) can call it. Empty
+      # disables the endpoint (404).
+      - key: CRON_SECRET
+        sync: false
 
   # The frontend now lives on Vercel (Root Directory = frontend). It reverse-
   # proxies /api/* to this API via the default target baked into next.config.mjs

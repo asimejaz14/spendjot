@@ -100,6 +100,17 @@ shows the domain **Verified**, set `RESEND_API_KEY` on the Render service.
 On first boot the backend automatically runs `alembic upgrade head` (creating the
 tables and seeding the 6 categories).
 
+### Weekly recap email
+
+Every user active in the last 7 days gets a Sunday recap (spend this week, top
+category, and monthly budget status). The API does the work at
+`POST /api/v1/internal/weekly-recap`, guarded by a shared `CRON_SECRET` header;
+Render's free tier has no scheduler, so a GitHub Actions cron
+(`.github/workflows/weekly-recap.yml`) triggers it. **Setup:** pick a random secret,
+set it as `CRON_SECRET` on the Render `spendjot-api` service **and** as a GitHub repo
+secret of the same name (Settings → Secrets and variables → Actions). Until both are
+set the endpoint 404s and nothing sends.
+
 ---
 
 ## 4. Verify
