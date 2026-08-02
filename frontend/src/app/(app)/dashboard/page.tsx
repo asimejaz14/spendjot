@@ -2,6 +2,7 @@
 
 import { Plus, Sparkles, WalletMinimal } from "lucide-react";
 import Link from "next/link";
+import { BudgetProgressCard } from "@/components/dashboard/budget-progress";
 import { CategoryDonut } from "@/components/dashboard/category-donut";
 import { MonthlyBar } from "@/components/dashboard/monthly-bar";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
@@ -66,6 +67,10 @@ export default function DashboardPage() {
       ) : summaryQuery.data ? (
         <>
           <SummaryCards summary={summaryQuery.data} />
+
+          <FadeIn>
+            <BudgetProgressCard />
+          </FadeIn>
 
           <div className="grid gap-4 lg:grid-cols-2">
             <FadeIn className="min-w-0">

@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 
 from httpx import AsyncClient
 
+from app.core.categories import SEED_CATEGORIES
+
 EXPENSES = "/api/v1/expenses"
 
 
@@ -37,7 +39,8 @@ async def test_categories_endpoint(auth_client: AsyncClient):
     resp = await auth_client.get("/api/v1/categories")
     assert resp.status_code == 200
     slugs = [c["slug"] for c in resp.json()]
-    assert slugs == ["food", "utility", "shisha", "entertainment", "travel", "misc"]
+    expected = [c["slug"] for c in sorted(SEED_CATEGORIES, key=lambda c: c["sort_order"])]
+    assert slugs == expected
 
 
 async def test_update_profile_theme(auth_client: AsyncClient):

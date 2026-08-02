@@ -7,6 +7,8 @@ import {
 } from "@tanstack/react-query";
 import { api } from "./api";
 import type {
+  Budget,
+  BudgetProgress,
   Category,
   DashboardSummary,
   ExpenseListResponse,
@@ -28,6 +30,8 @@ export const queryKeys = {
   summary: ["dashboard", "summary"] as const,
   monthly: (months: number) => ["dashboard", "monthly", months] as const,
   expenses: (params: ExpenseQueryParams) => ["expenses", params] as const,
+  budgets: ["budgets"] as const,
+  budgetProgress: ["budgets", "progress"] as const,
 };
 
 export function useCategories() {
@@ -118,5 +122,47 @@ export function useChangePin() {
   return useMutation({
     mutationFn: async (payload: { current_pin: string; new_pin: string }) =>
       (await api.post("/auth/change-pin", payload)).data,
+  });
+}
+
+export function useBudgets() {
+  return useQuery({
+    queryKey: queryKeys.budgets,
+    queryFn: async () => (await api.get<Budget[]>("/budgets")).data,
+  });
+}
+
+export function useBudgetProgress() {
+  return useQuery({
+    queryKey: queryKeys.budgetProgress,
+    queryFn: async () =>
+      (await api.get<BudgetProgress>("/budgets/progress")).data,
+  });
+}
+
+function useInvalidateBudgets() {
+  const qc = useQueryClient();
+  return () => qc.invalidateQueries({ queryKey: ["budgets"] });
+}
+
+export function useSetBudget() {
+  const invalidate = useInvalidateBudgets();
+  return useMutation({
+    mutationFn: async (payload: { category_id: number | null; amount: string }) =>
+      (await api.put<Budget>("/budgets", payload)).data,
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeleteBudget() {
+  const invalidate = useInvalidateBudgets();
+  return useMutation({
+    mutationFn: async (category_id: number | null) =>
+      (
+        await api.delete("/budgets", {
+          params: category_id === null ? {} : { category_id },
+        })
+      ).data,
+    onSuccess: invalidate,
   });
 }

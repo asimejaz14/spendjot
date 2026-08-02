@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { BudgetCard } from "@/components/settings/budget-card";
 import { FadeIn } from "@/components/feedback/motion";
 import { Spinner } from "@/components/feedback/loaders";
 import { Button } from "@/components/ui/button";
@@ -37,9 +38,12 @@ export default function SettingsPage() {
         <ProfileCard />
       </FadeIn>
       <FadeIn delay={0.05}>
-        <AppearanceCard />
+        <BudgetCard />
       </FadeIn>
       <FadeIn delay={0.1}>
+        <AppearanceCard />
+      </FadeIn>
+      <FadeIn delay={0.15}>
         <SecurityCard />
       </FadeIn>
     </div>
