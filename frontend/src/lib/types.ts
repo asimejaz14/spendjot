@@ -37,6 +37,14 @@ export interface ExpenseListResponse {
   total_amount: string;
 }
 
+export interface ParsedExpense {
+  name: string;
+  amount: string | null;
+  category_id: number | null;
+  category_name: string | null;
+  spent_at: string;
+}
+
 export interface CategoryBreakdown {
   category_id: number;
   slug: string;

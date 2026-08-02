@@ -1,6 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Sparkles } from "lucide-react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,7 +20,12 @@ import { CategoryIcon } from "@/components/categories/category-icon";
 import { Spinner } from "@/components/feedback/loaders";
 import { getErrorMessage } from "@/lib/api";
 import { toDateTimeLocal } from "@/lib/format";
-import { useCategories, useCreateExpense, useUpdateExpense } from "@/lib/queries";
+import {
+  useCategories,
+  useCreateExpense,
+  useParseExpense,
+  useUpdateExpense,
+} from "@/lib/queries";
 import type { Expense } from "@/lib/types";
 import { expenseSchema, type ExpenseValues } from "@/lib/validators";
 
@@ -33,10 +40,14 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
   const updateExpense = useUpdateExpense();
   const isEdit = Boolean(expense);
 
+  const parseExpense = useParseExpense();
+  const [quickText, setQuickText] = useState("");
+
   const {
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors },
   } = useForm<ExpenseValues>({
     resolver: zodResolver(expenseSchema),
@@ -75,8 +86,56 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
 
   const submitting = createExpense.isPending || updateExpense.isPending;
 
+  const handleQuickParse = async () => {
+    const text = quickText.trim();
+    if (!text) return;
+    try {
+      const draft = await parseExpense.mutateAsync(text);
+      setValue("name", draft.name, { shouldValidate: true });
+      if (draft.amount) setValue("amount", String(Number(draft.amount)), { shouldValidate: true });
+      if (draft.category_id)
+        setValue("category_id", draft.category_id, { shouldValidate: true });
+      setValue("spent_at", toDateTimeLocal(new Date(draft.spent_at)), { shouldValidate: true });
+      toast.success("Filled in below — review and add.");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <div className="space-y-4">
+      {!isEdit && (
+        <div className="rounded-xl border border-dashed border-primary/40 bg-secondary/40 p-3">
+          <Label htmlFor="quick-add" className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Sparkles className="h-3.5 w-3.5 text-primary" /> Quick add — just type it
+          </Label>
+          <div className="mt-1.5 flex gap-2">
+            <Input
+              id="quick-add"
+              placeholder="e.g. shisha 500 yesterday"
+              value={quickText}
+              onChange={(e) => setQuickText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleQuickParse();
+                }
+              }}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleQuickParse}
+              disabled={parseExpense.isPending || !quickText.trim()}
+            >
+              {parseExpense.isPending ? <Spinner className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+              Fill
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-1.5">
         <Label htmlFor="name">What did you spend on?</Label>
         <Input id="name" placeholder="e.g. Lunch at Kolachi" autoFocus {...register("name")} />
@@ -153,7 +212,8 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
         {submitting && <Spinner className="h-4 w-4" />}
         {isEdit ? "Save changes" : "Add expense"}
       </Button>
-    </form>
+      </form>
+    </div>
   );
 }
 

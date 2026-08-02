@@ -1,13 +1,29 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  Search,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { MonthlyBar } from "@/components/dashboard/monthly-bar";
 import { ExpenseList } from "@/components/expense/expense-list";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { FadeIn } from "@/components/feedback/motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -18,6 +34,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getErrorMessage } from "@/lib/api";
+import { downloadExpensesExport, type ExportFormat } from "@/lib/export";
 import { formatCurrency } from "@/lib/format";
 import {
   useCategories,
@@ -83,6 +101,24 @@ export default function HistoryPage() {
     setCategoryId("all");
     setStartDate("");
     setEndDate("");
+  };
+
+  const [exporting, setExporting] = useState<ExportFormat | null>(null);
+
+  const doExport = async (format: ExportFormat) => {
+    setExporting(format);
+    try {
+      await downloadExpensesExport(format, {
+        search: search || undefined,
+        category_id: categoryId !== "all" ? Number(categoryId) : undefined,
+        start: startDate ? new Date(`${startDate}T00:00:00`).toISOString() : undefined,
+        end: endDate ? new Date(`${endDate}T23:59:59`).toISOString() : undefined,
+      });
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setExporting(null);
+    }
   };
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / PAGE_SIZE)) : 1;
@@ -178,11 +214,30 @@ export default function HistoryPage() {
           <CardTitle className="text-base">
             {data ? `${data.total} ${data.total === 1 ? "expense" : "expenses"}` : "Results"}
           </CardTitle>
-          {data && data.total > 0 && (
-            <span className="tnum text-sm text-muted-foreground">
-              Total: <span className="font-semibold text-foreground">{formatCurrency(data.total_amount)}</span>
-            </span>
-          )}
+          <div className="flex items-center gap-3">
+            {data && data.total > 0 && (
+              <span className="tnum hidden text-sm text-muted-foreground sm:inline">
+                Total: <span className="font-semibold text-foreground">{formatCurrency(data.total_amount)}</span>
+              </span>
+            )}
+            {data && data.total > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" disabled={exporting !== null}>
+                    <Download className="h-4 w-4" /> Export
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => doExport("xlsx")} disabled={exporting !== null}>
+                    <FileSpreadsheet className="h-4 w-4" /> Excel (.xlsx)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => doExport("pdf")} disabled={exporting !== null}>
+                    <FileText className="h-4 w-4" /> PDF
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (

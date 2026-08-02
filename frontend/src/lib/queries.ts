@@ -14,6 +14,7 @@ import type {
   ExpenseListResponse,
   Insights,
   MonthlySeries,
+  ParsedExpense,
   User,
 } from "./types";
 
@@ -90,6 +91,13 @@ function useInvalidateExpenses() {
     qc.invalidateQueries({ queryKey: ["expenses"] });
     qc.invalidateQueries({ queryKey: ["dashboard"] });
   };
+}
+
+export function useParseExpense() {
+  return useMutation({
+    mutationFn: async (text: string) =>
+      (await api.post<ParsedExpense>("/expenses/parse", { text })).data,
+  });
 }
 
 export function useCreateExpense() {

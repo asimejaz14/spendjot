@@ -119,3 +119,38 @@ async def list_expenses(
     )
     items = list((await db.scalars(stmt)).all())
     return items, int(total), Decimal(total_amount)
+
+
+EXPORT_CAP = 5000
+
+
+async def export_expenses(
+    db: AsyncSession,
+    user: User,
+    *,
+    start: datetime | None = None,
+    end: datetime | None = None,
+    category_id: int | None = None,
+    search: str | None = None,
+) -> tuple[list[Expense], Decimal]:
+    """All expenses matching the filters (no pagination), for file export."""
+    filters = [Expense.user_id == user.id]
+    if start is not None:
+        filters.append(Expense.spent_at >= start)
+    if end is not None:
+        filters.append(Expense.spent_at <= end)
+    if category_id is not None:
+        filters.append(Expense.category_id == category_id)
+    if search:
+        filters.append(Expense.name.ilike(f"%{search.strip()}%"))
+
+    stmt = (
+        select(Expense)
+        .where(*filters)
+        .options(selectinload(Expense.category))
+        .order_by(Expense.spent_at.desc(), Expense.created_at.desc())
+        .limit(EXPORT_CAP)
+    )
+    items = list((await db.scalars(stmt)).all())
+    total_amount = sum((e.amount for e in items), Decimal(0))
+    return items, total_amount

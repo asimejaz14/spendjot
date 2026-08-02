@@ -48,3 +48,17 @@ class ExpenseListOut(BaseModel):
     page: int
     page_size: int
     total_amount: Money
+
+
+class ParseRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=200)
+
+
+class ParsedExpenseOut(BaseModel):
+    """A draft parsed from natural language — for the user to review, not saved."""
+
+    name: str
+    amount: Money | None
+    category_id: int | None
+    category_name: str | None
+    spent_at: datetime
