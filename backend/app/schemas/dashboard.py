@@ -35,3 +35,27 @@ class MonthlyPoint(BaseModel):
 
 class MonthlySeries(BaseModel):
     points: list[MonthlyPoint]
+
+
+class CategoryMover(BaseModel):
+    category_id: int
+    name: str
+    icon: str
+    this_month: Money
+    last_month: Money
+    delta: Money  # this_month - last_month (signed)
+
+
+class BiggestExpense(BaseModel):
+    name: str
+    amount: Money
+    category_name: str
+
+
+class Insights(BaseModel):
+    this_month_label: str
+    this_month_total: Money
+    last_month_total: Money
+    delta_pct: float | None  # (this - last) / last; None when last month was 0
+    top_mover: CategoryMover | None
+    biggest_expense: BiggestExpense | None

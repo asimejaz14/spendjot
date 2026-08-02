@@ -19,8 +19,11 @@ from app.core.timeutils import (
 from app.models.expense import Expense
 from app.models.user import User
 from app.schemas.dashboard import (
+    BiggestExpense,
     CategoryBreakdown,
+    CategoryMover,
     DashboardSummary,
+    Insights,
     MonthlyPoint,
     MonthlySeries,
 )
@@ -113,3 +116,81 @@ async def get_monthly_series(db: AsyncSession, user: User, months: int = 6) -> M
         for key, v in sorted(totals.items())
     ]
     return MonthlySeries(points=points)
+
+
+async def get_insights(db: AsyncSession, user: User) -> Insights:
+    """Plain-English highlights: this vs last month, top mover, biggest expense."""
+    now = now_utc()
+    this_start = month_start(now)
+    next_start = add_months(this_start, 1)
+    last_start = add_months(this_start, -1)
+
+    stmt = (
+        select(Expense)
+        .where(
+            Expense.user_id == user.id,
+            Expense.spent_at >= last_start,
+            Expense.spent_at < next_start,
+        )
+        .options(selectinload(Expense.category))
+    )
+    expenses = list((await db.scalars(stmt)).all())
+
+    this_total = Decimal(0)
+    last_total = Decimal(0)
+    this_by_cat: dict[int, Decimal] = defaultdict(lambda: Decimal(0))
+    last_by_cat: dict[int, Decimal] = defaultdict(lambda: Decimal(0))
+    cat_meta: dict[int, object] = {}
+    biggest: Expense | None = None
+
+    for e in expenses:
+        cat_meta[e.category_id] = e.category
+        if as_utc(e.spent_at) >= this_start:
+            this_total += e.amount
+            this_by_cat[e.category_id] += e.amount
+            if biggest is None or e.amount > biggest.amount:
+                biggest = e
+        else:
+            last_total += e.amount
+            last_by_cat[e.category_id] += e.amount
+
+    delta_pct = float((this_total - last_total) / last_total) if last_total > 0 else None
+
+    top_mover = None
+    cat_ids = set(this_by_cat) | set(last_by_cat)
+    if cat_ids:
+        cid = max(
+            cat_ids,
+            key=lambda c: abs(this_by_cat.get(c, Decimal(0)) - last_by_cat.get(c, Decimal(0))),
+        )
+        cat = cat_meta[cid]
+        this_c = this_by_cat.get(cid, Decimal(0))
+        last_c = last_by_cat.get(cid, Decimal(0))
+        if this_c != last_c:  # only a "mover" if something actually changed
+            top_mover = CategoryMover(
+                category_id=cid,
+                name=cat.name,
+                icon=cat.icon,
+                this_month=this_c,
+                last_month=last_c,
+                delta=this_c - last_c,
+            )
+
+    biggest_expense = (
+        BiggestExpense(
+            name=biggest.name,
+            amount=biggest.amount,
+            category_name=biggest.category.name,
+        )
+        if biggest is not None
+        else None
+    )
+
+    return Insights(
+        this_month_label=f"{MONTH_NAMES[now.month - 1]} {now.year}",
+        this_month_total=this_total,
+        last_month_total=last_total,
+        delta_pct=delta_pct,
+        top_mover=top_mover,
+        biggest_expense=biggest_expense,
+    )

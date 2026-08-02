@@ -67,6 +67,30 @@ export interface MonthlySeries {
   points: MonthlyPoint[];
 }
 
+export interface CategoryMover {
+  category_id: number;
+  name: string;
+  icon: string;
+  this_month: string;
+  last_month: string;
+  delta: string; // signed: this - last
+}
+
+export interface BiggestExpense {
+  name: string;
+  amount: string;
+  category_name: string;
+}
+
+export interface Insights {
+  this_month_label: string;
+  this_month_total: string;
+  last_month_total: string;
+  delta_pct: number | null; // null when last month was 0
+  top_mover: CategoryMover | null;
+  biggest_expense: BiggestExpense | null;
+}
+
 export interface Budget {
   id: string;
   category_id: number | null; // null = overall monthly budget

@@ -12,6 +12,7 @@ import type {
   Category,
   DashboardSummary,
   ExpenseListResponse,
+  Insights,
   MonthlySeries,
   User,
 } from "./types";
@@ -32,6 +33,7 @@ export const queryKeys = {
   expenses: (params: ExpenseQueryParams) => ["expenses", params] as const,
   budgets: ["budgets"] as const,
   budgetProgress: ["budgets", "progress"] as const,
+  insights: ["dashboard", "insights"] as const,
 };
 
 export function useCategories() {
@@ -47,6 +49,13 @@ export function useDashboardSummary() {
     queryKey: queryKeys.summary,
     queryFn: async () =>
       (await api.get<DashboardSummary>("/dashboard/summary")).data,
+  });
+}
+
+export function useInsights() {
+  return useQuery({
+    queryKey: queryKeys.insights,
+    queryFn: async () => (await api.get<Insights>("/dashboard/insights")).data,
   });
 }
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Query
 
 from app.api.deps import CurrentUser, DbSession
-from app.schemas.dashboard import DashboardSummary, MonthlySeries
+from app.schemas.dashboard import DashboardSummary, Insights, MonthlySeries
 from app.services import dashboard_service
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
@@ -12,6 +12,11 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 @router.get("/summary", response_model=DashboardSummary)
 async def summary(db: DbSession, current_user: CurrentUser) -> DashboardSummary:
     return await dashboard_service.get_summary(db, current_user)
+
+
+@router.get("/insights", response_model=Insights)
+async def insights(db: DbSession, current_user: CurrentUser) -> Insights:
+    return await dashboard_service.get_insights(db, current_user)
 
 
 @router.get("/monthly", response_model=MonthlySeries)
