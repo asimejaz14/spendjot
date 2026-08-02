@@ -27,15 +27,13 @@ if settings.database_url.startswith("postgresql+asyncpg"):
         ssl_ctx.verify_mode = ssl.CERT_NONE
         connect_args["ssl"] = ssl_ctx
 
-engine = create_async_engine(
-    settings.database_url,
-    echo=False,
-    pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=5,
-    future=True,
-    connect_args=connect_args,
-)
+# Connection pooling applies to real servers (Postgres). SQLite — handy for local
+# dev/tests — uses a NullPool and rejects pool_size/max_overflow, so omit them there.
+engine_kwargs: dict = {"echo": False, "future": True, "connect_args": connect_args}
+if not settings.database_url.startswith("sqlite"):
+    engine_kwargs.update(pool_pre_ping=True, pool_size=5, max_overflow=5)
+
+engine = create_async_engine(settings.database_url, **engine_kwargs)
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
