@@ -61,7 +61,7 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: SMTP_FROM_EMAIL
-        value: noreply@spendjot.com
+        value: hello@mail.spendjot.com
       - key: SMTP_FROM_NAME
         value: Spend Jot
       # Shared secret for the weekly-recap cron endpoint (POST /internal/weekly-recap).

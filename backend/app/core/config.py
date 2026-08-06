@@ -68,7 +68,7 @@ class Settings(BaseSettings):
     smtp_use_tls: bool = True  # implicit TLS (SMTPS) — correct for port 465
 
     # From identity, shared by both transports.
-    smtp_from_email: str = "noreply@spendjot.com"
+    smtp_from_email: str = "hello@mail.spendjot.com"
     smtp_from_name: str = "Spend Jot"
 
     # Shared secret guarding the internal cron endpoints (e.g. the weekly recap).
