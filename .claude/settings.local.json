@@ -21,7 +21,19 @@
       "PowerShell(curl.exe -s -o NUL -w \"categories\\(expect 401\\): %{http_code}\\\\n\" --resolve spendjot.com:443:216.198.79.1 https://spendjot.com/api/v1/categories)",
       "PowerShell(curl.exe -s -o NUL -w \"health-via-api: %{http_code}\\\\n\" --resolve spendjot.com:443:216.198.79.1 https://spendjot.com/api/v1/auth/refresh -X POST)",
       "PowerShell(python -m py_compile \"C:\\\\Users\\\\pc\\\\Desktop\\\\Spend Jot\\\\backend\\\\app\\\\services\\\\email_service.py\" \"C:\\\\Users\\\\pc\\\\Desktop\\\\Spend Jot\\\\backend\\\\app\\\\core\\\\config.py\")",
-      "PowerShell(if \\($?\\) { \"COMPILE OK\" })"
+      "PowerShell(if \\($?\\) { \"COMPILE OK\" })",
+      "PowerShell(curl.exe -s -w \"`nHTTP:%{http_code}`n\" -X POST \"https://spendjot.com/api/v1/auth/signup\" -H \"Content-Type: application/json\" -d $body)",
+      "PowerShell($body = '{\"email\":\"asim.ejaz14+sjtest@gmail.com\",\"pin\":\"246810\",\"display_name\":\"Asim\"}')",
+      "PowerShell(curl.exe -s -w \"`nHTTP:%{http_code}`n\" --resolve spendjot.com:443:216.198.79.1 -X POST \"https://spendjot.com/api/v1/auth/signup\" -H \"Content-Type: application/json\" -d $body)",
+      "PowerShell(curl.exe -s -o NUL -w \"%{http_code}`n\" -I \"https://spendjot-api.onrender.com/health\")",
+      "PowerShell(curl.exe -s -o NUL -w \"%{http_code}`n\" \"https://spendjot-api.onrender.com/health\")",
+      "PowerShell(\"HEAD:\")",
+      "PowerShell(\"GET :\")",
+      "PowerShell(python -m py_compile \"C:\\\\Users\\\\pc\\\\Desktop\\\\Spend Jot\\\\backend\\\\app\\\\main.py\")",
+      "PowerShell(python -m py_compile \"C:\\\\Users\\\\pc\\\\Desktop\\\\Spend Jot\\\\backend\\\\alembic\\\\versions\\\\0003_add_grocery_category.py\" \"C:\\\\Users\\\\pc\\\\Desktop\\\\Spend Jot\\\\backend\\\\app\\\\core\\\\categories.py\")",
+      "Bash(node -e ' *)",
+      "Bash(cp .env.local .env.local.bak)",
+      "Bash(printf 'NEXT_PUBLIC_API_BASE_URL=/api/v1\\\\n')"
     ]
   }
 }
