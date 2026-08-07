@@ -34,8 +34,11 @@ export function ExpenseRow({ expense }: { expense: Expense }) {
   };
 
   return (
-    <div className="flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-accent/60">
-      <CategoryBadge icon={expense.category.icon} />
+    <div className="group flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-accent/60">
+      <CategoryBadge
+        icon={expense.category.icon}
+        className="transition-transform duration-300 group-hover:scale-105 group-hover:bg-brand-soft group-hover:text-primary"
+      />
 
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium">{expense.name}</p>

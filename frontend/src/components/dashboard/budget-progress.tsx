@@ -1,8 +1,10 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { PiggyBank, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { CategoryBadge } from "@/components/categories/category-icon";
+import { AnimatedNumber } from "@/components/feedback/animated-number";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,14 +19,19 @@ function barColor(pct: number): string {
   return "bg-emerald-500";
 }
 
-function Bar({ pct }: { pct: number }) {
+function Bar({ pct, delay = 0 }: { pct: number; delay?: number }) {
   const width = Math.min(100, Math.max(0, pct * 100));
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-      <div
-        className={cn("h-full rounded-full transition-all", barColor(pct))}
-        style={{ width: `${width}%` }}
-      />
+    <div className="h-2.5 w-full overflow-hidden rounded-full bg-secondary">
+      <motion.div
+        className={cn("relative h-full overflow-hidden rounded-full", barColor(pct))}
+        initial={{ width: 0 }}
+        animate={{ width: `${width}%` }}
+        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay }}
+      >
+        {/* travelling sheen highlight */}
+        <span className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/45 to-transparent" />
+      </motion.div>
     </div>
   );
 }
@@ -81,9 +88,11 @@ export function BudgetProgressCard() {
           <div className="space-y-2.5">
             <div className="flex items-end justify-between gap-2">
               <div>
-                <p className="tnum text-2xl font-bold tracking-tight">
-                  {formatCurrency(spent)}
-                </p>
+                <AnimatedNumber
+                  value={spent}
+                  format={(v) => formatCurrency(v)}
+                  className="tnum block text-2xl font-bold tracking-tight"
+                />
                 <p className="text-xs text-muted-foreground">
                   of {formatCurrency(budget)} this month
                 </p>

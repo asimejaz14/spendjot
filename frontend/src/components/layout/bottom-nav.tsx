@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -36,11 +37,23 @@ export function BottomNav() {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-colors",
+                "relative flex flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-colors",
                 active ? "text-primary" : "text-muted-foreground",
               )}
             >
-              <Icon className="h-5 w-5" />
+              {active && (
+                <motion.span
+                  layoutId="bottomnav-active"
+                  className="absolute top-0 h-0.5 w-10 rounded-full bg-brand"
+                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                />
+              )}
+              <motion.span
+                animate={active ? { y: -1, scale: 1.08 } : { y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 24 }}
+              >
+                <Icon className="h-5 w-5" />
+              </motion.span>
               {item.label}
             </Link>
           );

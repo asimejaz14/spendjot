@@ -33,7 +33,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           position="top-center"
           richColors
           closeButton
-          toastOptions={{ className: "font-sans" }}
+          toastOptions={{
+            className: "font-sans rounded-2xl border border-border shadow-glow",
+          }}
         />
       </QueryClientProvider>
     </ThemeProvider>
