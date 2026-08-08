@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -37,15 +38,27 @@ export function AppSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
                 active
-                  ? "bg-secondary text-secondary-foreground"
+                  ? "text-secondary-foreground"
                   : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
               )}
               aria-current={active ? "page" : undefined}
             >
-              <Icon className="h-5 w-5" />
-              {item.label}
+              {active && (
+                <motion.span
+                  layoutId="sidebar-active"
+                  className="absolute inset-0 rounded-xl bg-secondary"
+                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                />
+              )}
+              <Icon
+                className={cn(
+                  "relative h-5 w-5 transition-transform group-hover:scale-110",
+                  active && "text-primary",
+                )}
+              />
+              <span className="relative">{item.label}</span>
             </Link>
           );
         })}

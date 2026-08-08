@@ -23,24 +23,33 @@ export default function DashboardPage() {
   const monthlyQuery = useMonthlySeries(6);
 
   const firstName = user?.display_name?.split(" ")[0];
+  const greeting = getGreeting();
 
   return (
     <div className="space-y-6">
-      <header className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight">
-            {firstName ? `Hi, ${firstName}` : "Dashboard"}
-          </h1>
-          <p className="text-sm text-muted-foreground">Here&apos;s your spending at a glance.</p>
-        </div>
-        <ExpenseDialog
-          trigger={
-            <Button variant="brand" className="hidden sm:inline-flex">
-              <Plus className="h-5 w-5" /> Add expense
-            </Button>
-          }
-        />
-      </header>
+      <FadeIn>
+        <header className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="font-display text-2xl font-bold tracking-tight">
+              {firstName ? (
+                <>
+                  {greeting}, <span className="text-gradient">{firstName}</span>
+                </>
+              ) : (
+                "Dashboard"
+              )}
+            </h1>
+            <p className="text-sm text-muted-foreground">Here&apos;s your spending at a glance.</p>
+          </div>
+          <ExpenseDialog
+            trigger={
+              <Button variant="brand" className="hidden sm:inline-flex">
+                <Plus className="h-5 w-5" /> Add expense
+              </Button>
+            }
+          />
+        </header>
+      </FadeIn>
 
       {summaryQuery.isLoading ? (
         <DashboardSkeleton />
@@ -138,6 +147,13 @@ export default function DashboardPage() {
       ) : null}
     </div>
   );
+}
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
 }
 
 function DashboardSkeleton() {

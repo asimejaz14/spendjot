@@ -41,9 +41,15 @@ export function MonthlyBar({ data }: { data: MonthlyPoint[] }) {
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData} margin={{ top: 8, right: 4, left: -8, bottom: 0 }}>
           <defs>
-            <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+            {/* Peak month — full brand gradient */}
+            <linearGradient id="barGradMax" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#8B5CF6" />
               <stop offset="100%" stopColor="#4F46E5" />
+            </linearGradient>
+            {/* Other months — softer lilac gradient */}
+            <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#C4B5FD" />
+              <stop offset="100%" stopColor="#A78BFA" />
             </linearGradient>
           </defs>
           <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeDasharray="3 3" />
@@ -60,12 +66,25 @@ export function MonthlyBar({ data }: { data: MonthlyPoint[] }) {
             width={64}
             tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
           />
-          <Tooltip content={<ChartTooltip />} cursor={{ fill: "hsl(var(--accent))", opacity: 0.4 }} />
-          <Bar dataKey="value" radius={[8, 8, 0, 0]} maxBarSize={56}>
+          <Tooltip
+            content={<ChartTooltip />}
+            cursor={{ fill: "hsl(var(--accent))", opacity: 0.4, radius: 8 }}
+          />
+          <Bar
+            dataKey="value"
+            radius={[10, 10, 0, 0]}
+            maxBarSize={56}
+            animationBegin={100}
+            animationDuration={900}
+          >
             {chartData.map((entry) => (
               <Cell
                 key={entry.month}
-                fill={entry.value === maxValue && maxValue > 0 ? "url(#barGrad)" : "#A78BFA"}
+                fill={
+                  entry.value === maxValue && maxValue > 0
+                    ? "url(#barGradMax)"
+                    : "url(#barGrad)"
+                }
               />
             ))}
           </Bar>

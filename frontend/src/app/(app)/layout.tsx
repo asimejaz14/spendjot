@@ -32,7 +32,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen">
+      {/* Ambient brand glow behind the whole app — quiet depth, no noise. */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(60%_100%_at_70%_0%,hsl(var(--primary)/0.10),transparent_70%)]"
+      />
       <AppSidebar />
       <div className="md:pl-64">
         <MobileHeader />
