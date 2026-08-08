@@ -60,6 +60,11 @@ const config: Config = {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
         display: ["var(--font-sora)", "var(--font-inter)", "sans-serif"],
       },
+      transitionTimingFunction: {
+        // Strong custom curves (animations.dev) — built-in easings are too weak.
+        "out-strong": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "in-out-strong": "cubic-bezier(0.77, 0, 0.175, 1)",
+      },
       backgroundImage: {
         brand: "linear-gradient(135deg, #8B5CF6 0%, #6D5DEF 50%, #4F46E5 100%)",
         "brand-soft":

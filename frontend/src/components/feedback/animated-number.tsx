@@ -14,7 +14,7 @@ type Formatter = (value: number) => string;
 export function AnimatedNumber({
   value,
   format = (v) => String(Math.round(v)),
-  duration = 1.1,
+  duration = 0.9,
   className,
 }: {
   value: number;
@@ -34,7 +34,7 @@ export function AnimatedNumber({
     }
     const controls = animate(fromRef.current, value, {
       duration,
-      ease: [0.16, 1, 0.3, 1], // easeOutExpo — fast start, gentle settle
+      ease: [0.23, 1, 0.32, 1], // strong ease-out (animations.dev) — fast start, gentle settle
       onUpdate: (v) => setDisplay(v),
     });
     fromRef.current = value;

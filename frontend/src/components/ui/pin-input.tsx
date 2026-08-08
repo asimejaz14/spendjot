@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, useAnimationControls } from "framer-motion";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,21 @@ export function PinInput({
   React.useEffect(() => {
     if (autoFocus) refs.current[0]?.focus();
   }, [autoFocus]);
+
+  // Feedback on a rejected PIN: a quick horizontal shake. Rare (only fires on a
+  // failed attempt) so it sits in the delight/feedback budget, and it's a
+  // `transform` keyframe so MotionConfig silences it under reduced-motion.
+  const shake = useAnimationControls();
+  const wasInvalid = React.useRef(false);
+  React.useEffect(() => {
+    if (invalid && !wasInvalid.current) {
+      shake.start({
+        x: [0, -6, 6, -4, 4, 0],
+        transition: { duration: 0.36, ease: "easeInOut" },
+      });
+    }
+    wasInvalid.current = invalid;
+  }, [invalid, shake]);
 
   const setDigit = (index: number, digit: string) => {
     const next = value.split("");
@@ -85,7 +101,12 @@ export function PinInput({
   };
 
   return (
-    <div className="flex gap-2 sm:gap-3" role="group" aria-label={ariaLabel}>
+    <motion.div
+      animate={shake}
+      className="flex gap-2 sm:gap-3"
+      role="group"
+      aria-label={ariaLabel}
+    >
       {Array.from({ length }).map((_, i) => (
         <input
           key={i}
@@ -105,13 +126,13 @@ export function PinInput({
           onPaste={handlePaste}
           onFocus={(e) => e.target.select()}
           className={cn(
-            "h-12 w-full min-w-0 rounded-xl border bg-background text-center text-lg font-semibold shadow-sm transition-all",
+            "h-12 w-full min-w-0 rounded-xl border bg-background text-center text-lg font-semibold shadow-sm transition-[border-color,box-shadow,color]",
             "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 focus:ring-offset-background",
             invalid ? "border-destructive" : "border-input",
             "sm:h-14 sm:text-xl",
           )}
         />
       ))}
-    </div>
+    </motion.div>
   );
 }
