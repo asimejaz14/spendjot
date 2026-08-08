@@ -23,15 +23,15 @@ function Bar({ pct, delay = 0 }: { pct: number; delay?: number }) {
   const width = Math.min(100, Math.max(0, pct * 100));
   return (
     <div className="h-2.5 w-full overflow-hidden rounded-full bg-secondary">
+      {/* Fill grows once via scaleX (GPU) — no perpetual shimmer: this bar is
+          data the user reads, so it shouldn't move for decoration. */}
       <motion.div
-        className={cn("relative h-full overflow-hidden rounded-full", barColor(pct))}
-        initial={{ width: 0 }}
-        animate={{ width: `${width}%` }}
-        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay }}
-      >
-        {/* travelling sheen highlight */}
-        <span className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/45 to-transparent" />
-      </motion.div>
+        className={cn("h-full w-full rounded-full", barColor(pct))}
+        style={{ transformOrigin: "left" }}
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: width / 100 }}
+        transition={{ duration: 0.9, ease: [0.23, 1, 0.32, 1], delay }}
+      />
     </div>
   );
 }
