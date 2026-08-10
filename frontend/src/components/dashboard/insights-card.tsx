@@ -2,7 +2,8 @@
 
 import { ArrowDownRight, ArrowUpRight, Lightbulb, Receipt } from "lucide-react";
 import { CategoryBadge } from "@/components/categories/category-icon";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/format";
 import { useInsights } from "@/lib/queries";
@@ -25,7 +26,7 @@ export function InsightsCard() {
   const moverUp = top_mover ? Number(top_mover.delta) > 0 : false;
 
   return (
-    <Card>
+    <SpotlightCard className="h-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Lightbulb className="h-5 w-5 text-primary" /> Insights
@@ -97,6 +98,6 @@ export function InsightsCard() {
           </div>
         )}
       </CardContent>
-    </Card>
+    </SpotlightCard>
   );
 }

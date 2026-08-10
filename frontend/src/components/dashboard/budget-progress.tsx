@@ -6,7 +6,8 @@ import Link from "next/link";
 import { CategoryBadge } from "@/components/categories/category-icon";
 import { AnimatedNumber } from "@/components/feedback/animated-number";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/format";
 import { useBudgetProgress } from "@/lib/queries";
@@ -51,7 +52,7 @@ export function BudgetProgressCard() {
   // Nothing set up yet — gentle nudge to configure budgets.
   if (!hasAny) {
     return (
-      <Card>
+      <SpotlightCard className="h-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <PiggyBank className="h-5 w-5 text-primary" /> Budget
@@ -65,7 +66,7 @@ export function BudgetProgressCard() {
             <Link href="/settings">Set a budget</Link>
           </Button>
         </CardContent>
-      </Card>
+      </SpotlightCard>
     );
   }
 
@@ -76,7 +77,7 @@ export function BudgetProgressCard() {
   const pct = overall.pct ?? 0;
 
   return (
-    <Card>
+    <SpotlightCard className="h-full">
       <CardHeader className="flex-row items-center justify-between space-y-0">
         <CardTitle className="flex items-center gap-2">
           <PiggyBank className="h-5 w-5 text-primary" /> Budget
@@ -175,6 +176,6 @@ export function BudgetProgressCard() {
           </div>
         )}
       </CardContent>
-    </Card>
+    </SpotlightCard>
   );
 }
