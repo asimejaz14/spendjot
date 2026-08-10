@@ -37,15 +37,21 @@ export default function SettingsPage() {
       <FadeIn>
         <ProfileCard />
       </FadeIn>
-      <FadeIn delay={0.05}>
-        <BudgetCard />
-      </FadeIn>
-      <FadeIn delay={0.1}>
-        <AppearanceCard />
-      </FadeIn>
-      <FadeIn delay={0.15}>
-        <SecurityCard />
-      </FadeIn>
+      {/* Two columns on large screens so the shorter cards don't stretch thin:
+          budgets on one side, appearance + security stacked on the other. */}
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+        <FadeIn delay={0.05}>
+          <BudgetCard />
+        </FadeIn>
+        <div className="space-y-6">
+          <FadeIn delay={0.1}>
+            <AppearanceCard />
+          </FadeIn>
+          <FadeIn delay={0.15}>
+            <SecurityCard />
+          </FadeIn>
+        </div>
+      </div>
     </div>
   );
 }
@@ -74,11 +80,11 @@ function ProfileCard() {
         <CardDescription>Your account details.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="name">Display name</Label>
-          <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="name">Display name</Label>
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
+          </div>
           <div className="space-y-1.5">
             <Label>Email</Label>
             <Input value={user?.email ?? ""} disabled />
