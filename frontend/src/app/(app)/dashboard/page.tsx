@@ -10,9 +10,10 @@ import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { ExpenseDialog } from "@/components/expense/expense-dialog";
 import { ExpenseList } from "@/components/expense/expense-list";
 import { EmptyState } from "@/components/feedback/empty-state";
-import { FadeIn } from "@/components/feedback/motion";
+import { FadeIn, Reveal } from "@/components/feedback/motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth-context";
 import { useDashboardSummary, useMonthlySeries } from "@/lib/queries";
@@ -78,18 +79,18 @@ export default function DashboardPage() {
         <>
           <SummaryCards summary={summaryQuery.data} />
 
-          <div className="grid gap-4 lg:grid-cols-2">
-            <FadeIn className="min-w-0">
+          <Reveal className="grid gap-4 lg:grid-cols-2">
+            <div className="min-w-0">
               <BudgetProgressCard />
-            </FadeIn>
-            <FadeIn delay={0.05} className="min-w-0">
+            </div>
+            <div className="min-w-0">
               <InsightsCard />
-            </FadeIn>
-          </div>
+            </div>
+          </Reveal>
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <FadeIn className="min-w-0">
-              <Card className="h-full overflow-hidden">
+            <Reveal className="min-w-0">
+              <SpotlightCard className="h-full overflow-hidden">
                 <CardHeader>
                   <CardTitle>Where your money went</CardTitle>
                 </CardHeader>
@@ -102,11 +103,11 @@ export default function DashboardPage() {
                     </p>
                   )}
                 </CardContent>
-              </Card>
-            </FadeIn>
+              </SpotlightCard>
+            </Reveal>
 
-            <FadeIn delay={0.05} className="min-w-0">
-              <Card className="h-full overflow-hidden">
+            <Reveal delay={0.05} className="min-w-0">
+              <SpotlightCard className="h-full overflow-hidden">
                 <CardHeader className="flex-row items-center justify-between space-y-0">
                   <CardTitle>Recent expenses</CardTitle>
                   <Link href="/history" className="text-sm font-medium text-primary hover:underline">
@@ -122,12 +123,12 @@ export default function DashboardPage() {
                     </p>
                   )}
                 </CardContent>
-              </Card>
-            </FadeIn>
+              </SpotlightCard>
+            </Reveal>
           </div>
 
-          <FadeIn delay={0.1}>
-            <Card>
+          <Reveal>
+            <SpotlightCard>
               <CardHeader className="flex-row items-center justify-between space-y-0">
                 <CardTitle>Monthly spending</CardTitle>
                 <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
@@ -141,8 +142,8 @@ export default function DashboardPage() {
                   <MonthlyBar data={monthlyQuery.data.points} />
                 ) : null}
               </CardContent>
-            </Card>
-          </FadeIn>
+            </SpotlightCard>
+          </Reveal>
         </>
       ) : null}
     </div>

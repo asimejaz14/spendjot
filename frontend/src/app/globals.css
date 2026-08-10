@@ -140,6 +140,54 @@
   background-size: 22px 22px;
 }
 
+/* Spotlight cards — the border illuminates under the cursor (Taste "spotlight
+   borders"). --mx/--my (in px) are driven smoothly by gsap.quickTo. The glow is
+   masked to the 1px border ring so it never sits over content, is hover-gated
+   to fine pointers, and simply stays centred (static) under reduced motion. */
+.spotlight {
+  position: relative;
+}
+@media (hover: hover) and (pointer: fine) {
+  .spotlight::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: radial-gradient(
+      260px circle at var(--mx, 50%) var(--my, 50%),
+      hsl(var(--primary) / 0.9),
+      hsl(var(--primary) / 0.3) 40%,
+      transparent 72%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+  }
+  .spotlight:hover::before {
+    opacity: 1;
+  }
+}
+
+/* Fixed grain layer behind content — breaks digital flatness (Taste "grain and
+   noise overlays"). Sits behind the UI so it never touches text crispness. */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: -5;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 /* Slim, on-brand scrollbar. */
 * {
   scrollbar-width: thin;

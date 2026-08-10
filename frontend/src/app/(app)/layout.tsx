@@ -38,6 +38,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         aria-hidden
         className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[420px] bg-[radial-gradient(60%_100%_at_70%_0%,hsl(var(--primary)/0.10),transparent_70%)]"
       />
+      {/* Fine grain texture behind content — breaks digital flatness. */}
+      <div aria-hidden className="grain" />
       <AppSidebar />
       <div className="md:pl-64">
         <MobileHeader />
