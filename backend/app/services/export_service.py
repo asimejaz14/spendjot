@@ -115,7 +115,7 @@ def build_pdf(expenses: list[Expense], total_amount: Decimal, subtitle: str) -> 
         ("FONTSIZE", (0, 0), (-1, 0), 9),
         ("ROWBACKGROUNDS", (0, 1), (-1, -2), [colors.white, colors.HexColor(f"#{_MIST}")]),
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("ALIGN", (3, 0), (3, -1), "RIGHT"),
+        ("ALIGN", (3, 0), (3, -1), "LEFT"),
         ("TOPPADDING", (0, 0), (-1, -1), 4),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
         ("LINEABOVE", (0, -1), (-1, -1), 0.6, colors.HexColor(f"#{_LINE}")),
