@@ -61,9 +61,9 @@ def test_build_weekly_recap_email_renders_numbers():
     )
     subject, html, text = build_weekly_recap_email("Asim Ejaz", stats)
     assert "week" in subject.lower()
-    assert "₨ 7,300" in html and "₨ 7,300" in text
+    assert "Rs 7,300" in html and "Rs 7,300" in text
     assert "Grocery" in html
-    assert "₨ 80,000" in html  # budget context present
+    assert "Rs 80,000" in html  # budget context present
     assert "Asim" in html  # first-name greeting
 
 

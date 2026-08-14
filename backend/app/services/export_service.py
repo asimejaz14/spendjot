@@ -99,12 +99,12 @@ def build_pdf(expenses: list[Expense], total_amount: Decimal, subtitle: str) -> 
             Paragraph(_fmt_dt(e.spent_at), cell),
             Paragraph(escape(e.name), cell),
             Paragraph(escape(e.category.name if e.category else ""), cell),
-            Paragraph(f"₨ {_amount_int(e.amount):,}", cell),
+            Paragraph(f"Rs {_amount_int(e.amount):,}", cell),
             Paragraph(escape(e.description or ""), cell),
         ])
     data.append([
         "", "", Paragraph("<b>Total</b>", cell),
-        Paragraph(f"<b>₨ {_amount_int(total_amount):,}</b>", cell), "",
+        Paragraph(f"<b>Rs {_amount_int(total_amount):,}</b>", cell), "",
     ])
 
     table = Table(data, colWidths=[30 * mm, 46 * mm, 27 * mm, 25 * mm, 36 * mm], repeatRows=1)

@@ -324,10 +324,10 @@ async def send_welcome_email(to_email: str, display_name: str | None) -> None:
 # ---------------------------------------------------------------------------
 
 def _pkr(amount: Decimal | int | float | None) -> str:
-    """Whole-rupee PKR, e.g. '₨ 12,500'."""
+    """Whole-rupee PKR, e.g. 'Rs 12,500'."""
     if amount is None:
         return "—"
-    return f"₨ {int(Decimal(str(amount))):,}"
+    return f"Rs {int(Decimal(str(amount))):,}"
 
 
 def _first_name(display_name: str | None) -> str:

@@ -101,7 +101,7 @@ async def export_expenses(
     else:
         subtitle = (
             f"{len(items)} {'expense' if len(items) == 1 else 'expenses'} · "
-            f"Total ₨ {int(total):,} · Generated {now_utc().strftime('%d %b %Y')}"
+            f"Total Rs {int(total):,} · Generated {now_utc().strftime('%d %b %Y')}"
         )
         content = export_service.build_pdf(items, total, subtitle)
 
