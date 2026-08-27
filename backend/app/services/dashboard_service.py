@@ -1,6 +1,7 @@
 """Aggregations powering the dashboard and history charts (user-scoped)."""
 from __future__ import annotations
 
+import calendar
 from collections import defaultdict
 from decimal import Decimal
 
@@ -22,6 +23,8 @@ from app.schemas.dashboard import (
     BiggestExpense,
     CategoryBreakdown,
     CategoryMover,
+    DailyPoint,
+    DailySeries,
     DashboardSummary,
     Insights,
     MonthlyPoint,
@@ -116,6 +119,50 @@ async def get_monthly_series(db: AsyncSession, user: User, months: int = 6) -> M
         for key, v in sorted(totals.items())
     ]
     return MonthlySeries(points=points)
+
+
+async def get_daily_series(db: AsyncSession, user: User) -> DailySeries:
+    """Per-day spending for the current month: day 1 → last day of the month.
+
+    Days up to and including today carry a real total (0 when nothing was
+    spent); later days are `None` so the chart line stops at today while the
+    axis still spans the whole month.
+    """
+    now = now_utc()
+    start = month_start(now)
+    nxt = add_months(now, 1)
+
+    stmt = select(Expense).where(
+        Expense.user_id == user.id,
+        Expense.spent_at >= start,
+        Expense.spent_at < nxt,
+    )
+    expenses = list((await db.scalars(stmt)).all())
+
+    days_in_month = calendar.monthrange(now.year, now.month)[1]
+    buckets: dict[int, dict] = {
+        d: {"total": Decimal(0), "count": 0} for d in range(1, days_in_month + 1)
+    }
+    for e in expenses:
+        day = as_utc(e.spent_at).day
+        if day in buckets:
+            buckets[day]["total"] += e.amount
+            buckets[day]["count"] += 1
+
+    today = now.day
+    points = [
+        DailyPoint(
+            date=f"{now.year:04d}-{now.month:02d}-{d:02d}",
+            day=d,
+            label=str(d),
+            total=None if d > today else buckets[d]["total"],
+            count=0 if d > today else buckets[d]["count"],
+        )
+        for d in range(1, days_in_month + 1)
+    ]
+    return DailySeries(
+        month_label=f"{MONTH_NAMES[now.month - 1]} {now.year}", points=points
+    )
 
 
 async def get_insights(db: AsyncSession, user: User) -> Insights:
