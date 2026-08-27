@@ -13,6 +13,7 @@ import type {
   DashboardSummary,
   ExpenseListResponse,
   Insights,
+  DailySeries,
   MonthlySeries,
   ParsedExpense,
   User,
@@ -31,6 +32,7 @@ export const queryKeys = {
   categories: ["categories"] as const,
   summary: ["dashboard", "summary"] as const,
   monthly: (months: number) => ["dashboard", "monthly", months] as const,
+  daily: ["dashboard", "daily"] as const,
   expenses: (params: ExpenseQueryParams) => ["expenses", params] as const,
   budgets: ["budgets"] as const,
   budgetProgress: ["budgets", "progress"] as const,
@@ -66,6 +68,13 @@ export function useMonthlySeries(months = 6) {
     queryFn: async () =>
       (await api.get<MonthlySeries>("/dashboard/monthly", { params: { months } }))
         .data,
+  });
+}
+
+export function useDailySeries() {
+  return useQuery({
+    queryKey: queryKeys.daily,
+    queryFn: async () => (await api.get<DailySeries>("/dashboard/daily")).data,
   });
 }
 

@@ -75,6 +75,19 @@ export interface MonthlySeries {
   points: MonthlyPoint[];
 }
 
+export interface DailyPoint {
+  date: string; // ISO "YYYY-MM-DD"
+  day: number; // day of month, 1..31
+  label: string; // short axis label
+  total: string | null; // null for days later than today
+  count: number;
+}
+
+export interface DailySeries {
+  month_label: string;
+  points: DailyPoint[];
+}
+
 export interface CategoryMover {
   category_id: number;
   name: string;

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { BudgetProgressCard } from "@/components/dashboard/budget-progress";
 import { CategoryDonut } from "@/components/dashboard/category-donut";
 import { InsightsCard } from "@/components/dashboard/insights-card";
-import { MonthlyBar } from "@/components/dashboard/monthly-bar";
+import { DailyLine } from "@/components/dashboard/daily-line";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { ExpenseDialog } from "@/components/expense/expense-dialog";
 import { ExpenseList } from "@/components/expense/expense-list";
@@ -16,12 +16,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth-context";
-import { useDashboardSummary, useMonthlySeries } from "@/lib/queries";
+import { useDailySeries, useDashboardSummary } from "@/lib/queries";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const summaryQuery = useDashboardSummary();
-  const monthlyQuery = useMonthlySeries(6);
+  const dailyQuery = useDailySeries();
 
   const firstName = user?.display_name?.split(" ")[0];
   const greeting = getGreeting();
@@ -130,16 +130,17 @@ export default function DashboardPage() {
           <Reveal>
             <SpotlightCard>
               <CardHeader className="flex-row items-center justify-between space-y-0">
-                <CardTitle>Monthly spending</CardTitle>
+                <CardTitle>Daily spending</CardTitle>
                 <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                  <Sparkles className="h-3.5 w-3.5" /> Last 6 months
+                  <Sparkles className="h-3.5 w-3.5" />
+                  {dailyQuery.data?.month_label ?? "This month"}
                 </span>
               </CardHeader>
               <CardContent>
-                {monthlyQuery.isLoading ? (
+                {dailyQuery.isLoading ? (
                   <Skeleton className="h-64 w-full" />
-                ) : monthlyQuery.data ? (
-                  <MonthlyBar data={monthlyQuery.data.points} />
+                ) : dailyQuery.data ? (
+                  <DailyLine data={dailyQuery.data.points} />
                 ) : null}
               </CardContent>
             </SpotlightCard>

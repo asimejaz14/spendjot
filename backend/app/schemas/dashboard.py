@@ -37,6 +37,19 @@ class MonthlySeries(BaseModel):
     points: list[MonthlyPoint]
 
 
+class DailyPoint(BaseModel):
+    date: str  # ISO "YYYY-MM-DD"
+    day: int  # day of month, 1..31
+    label: str  # short axis label, e.g. "1", "15"
+    total: Money | None  # None for days later than today (no data yet)
+    count: int
+
+
+class DailySeries(BaseModel):
+    month_label: str  # "August 2026"
+    points: list[DailyPoint]  # one per day of the current month, day 1 → last day
+
+
 class CategoryMover(BaseModel):
     category_id: int
     name: str
