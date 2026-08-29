@@ -22,7 +22,28 @@ falls back to a built-in rule-based parser, so the flow still works.
 (you only see it once). It's a long-lived, revocable token scoped to creating
 expenses only — it can't touch the rest of your account.
 
-## 2. Build the Shortcut (once)
+## 2. Quick start — import the ready-made Shortcut
+
+A prebuilt Shortcut lives at **`docs/shortcuts/SpendJot-AddExpense.shortcut`**.
+
+1. Open the file on your iPhone/iPad/Mac (AirDrop it, or open from Files/iCloud).
+   Because it isn't Apple-signed, enable **Settings → Shortcuts → Allow
+   Untrusted Shortcuts** first (that toggle only appears after you've run any
+   one shortcut).
+2. When it opens in Shortcuts, edit the **Get Contents of URL** action:
+   - replace `sj_live_PASTE_YOUR_TOKEN_HERE` with your token from step 1,
+   - set `client_tz` to your timezone if it isn't `Asia/Karachi`,
+   - change the URL if your API is hosted elsewhere.
+3. Add it to Siri (**"Hey Siri, add expense"**) and you're done.
+
+> The prebuilt Shortcut sends `{ "text": <dictated>, "client_tz": "Asia/Karachi" }`
+> — no "Current Date" action needed, because the server anchors relative dates
+> ("yesterday") to *now in that timezone*.
+
+If import is blocked or you'd rather build it yourself, use the manual steps
+below — they produce the same thing.
+
+## 3. Build the Shortcut manually (alternative)
 
 Open the **Shortcuts** app → **+** → name it **Add expense**, then add:
 
