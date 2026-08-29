@@ -2,7 +2,17 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.api.v1 import auth, budgets, categories, dashboard, expenses, internal, users
+from app.api.v1 import (
+    auth,
+    budgets,
+    categories,
+    dashboard,
+    expenses,
+    internal,
+    tokens,
+    users,
+    voice,
+)
 
 api_router = APIRouter()
 api_router.include_router(auth.router)
@@ -12,3 +22,5 @@ api_router.include_router(expenses.router)
 api_router.include_router(dashboard.router)
 api_router.include_router(budgets.router)
 api_router.include_router(internal.router)
+api_router.include_router(tokens.router)
+api_router.include_router(voice.router)

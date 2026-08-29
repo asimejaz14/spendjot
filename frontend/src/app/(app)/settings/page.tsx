@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { BudgetCard } from "@/components/settings/budget-card";
+import { VoiceAccessCard } from "@/components/settings/voice-access-card";
 import { FadeIn } from "@/components/feedback/motion";
 import { Spinner } from "@/components/feedback/loaders";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,9 @@ export default function SettingsPage() {
             <AppearanceCard />
           </FadeIn>
           <FadeIn delay={0.15}>
+            <VoiceAccessCard />
+          </FadeIn>
+          <FadeIn delay={0.2}>
             <SecurityCard />
           </FadeIn>
         </div>
