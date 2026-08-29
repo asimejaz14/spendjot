@@ -7,6 +7,8 @@ import {
 } from "@tanstack/react-query";
 import { api } from "./api";
 import type {
+  ApiToken,
+  ApiTokenCreated,
   Budget,
   BudgetProgress,
   Category,
@@ -33,6 +35,7 @@ export const queryKeys = {
   summary: ["dashboard", "summary"] as const,
   monthly: (months: number) => ["dashboard", "monthly", months] as const,
   daily: ["dashboard", "daily"] as const,
+  apiTokens: ["api-tokens"] as const,
   expenses: (params: ExpenseQueryParams) => ["expenses", params] as const,
   budgets: ["budgets"] as const,
   budgetProgress: ["budgets", "progress"] as const,
@@ -75,6 +78,32 @@ export function useDailySeries() {
   return useQuery({
     queryKey: queryKeys.daily,
     queryFn: async () => (await api.get<DailySeries>("/dashboard/daily")).data,
+  });
+}
+
+export function useApiTokens() {
+  return useQuery({
+    queryKey: queryKeys.apiTokens,
+    queryFn: async () => (await api.get<ApiToken[]>("/tokens")).data,
+  });
+}
+
+export function useCreateApiToken() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (name: string) =>
+      (await api.post<ApiTokenCreated>("/tokens", { name })).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.apiTokens }),
+  });
+}
+
+export function useRevokeApiToken() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/tokens/${id}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.apiTokens }),
   });
 }
 

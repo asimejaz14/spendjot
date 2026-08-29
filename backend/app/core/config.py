@@ -76,6 +76,18 @@ class Settings(BaseSettings):
     # matching `X-Cron-Secret` header.
     cron_secret: str = ""
 
+    # Azure OpenAI — powers the natural-language expense extraction used by the
+    # Siri/Shortcuts voice flow. When these aren't set, the voice endpoint falls
+    # back to the built-in rule-based parser so it still works (just less smart).
+    azure_openai_endpoint: str = ""          # https://<resource>.openai.azure.com
+    azure_openai_api_key: str = ""
+    azure_openai_deployment: str = "gpt-4o-mini"
+    azure_openai_api_version: str = "2024-10-21"
+
+    @property
+    def azure_openai_enabled(self) -> bool:
+        return bool(self.azure_openai_endpoint and self.azure_openai_api_key)
+
     @property
     def emails_enabled(self) -> bool:
         return bool(

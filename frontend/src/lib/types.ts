@@ -88,6 +88,18 @@ export interface DailySeries {
   points: DailyPoint[];
 }
 
+export interface ApiToken {
+  id: string;
+  name: string;
+  prefix: string;
+  last_used_at: string | null;
+  created_at: string;
+}
+
+export interface ApiTokenCreated extends ApiToken {
+  token: string; // full plaintext, returned only at creation
+}
+
 export interface CategoryMover {
   category_id: number;
   name: string;

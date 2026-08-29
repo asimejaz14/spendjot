@@ -71,3 +71,18 @@ def hash_refresh_token(token: str) -> str:
 
 def refresh_token_expiry() -> datetime:
     return datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
+
+
+# ----- Personal API tokens (Siri/Shortcuts voice flow) ----------------------
+API_TOKEN_PREFIX = "sj_live_"
+
+
+def generate_api_token() -> str:
+    """A long-lived, high-entropy personal access token. Stored hashed; the
+    plaintext is shown to the user once. The ``sj_live_`` prefix lets the auth
+    layer tell it apart from a JWT at a glance."""
+    return f"{API_TOKEN_PREFIX}{secrets.token_urlsafe(32)}"
+
+
+def hash_api_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
