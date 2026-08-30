@@ -126,7 +126,9 @@ model (`gpt-5-mini`):
 | `AZURE_OPENAI_ENDPOINT` | `https://<res>.services.ai.azure.com/api/projects/<proj>/openai/v1/responses` | secret. The base or the full `…/responses` URL both work. |
 | `AZURE_OPENAI_API_KEY` | `…` | secret — never commit |
 | `AZURE_OPENAI_DEPLOYMENT` | `gpt-5-mini` | your deployment name |
-| `AZURE_OPENAI_API_VERSION` | `preview` | required while the v1 API is in preview |
+
+> The `/openai/v1` path must **not** carry an `api-version` query param (it
+> returns `400 "api-version ... not allowed"`), so there's no API-version setting.
 
 Leaving the endpoint/key blank keeps the feature working via the rule-based
 parser (just less flexible with messy phrasing). The voice endpoint's JSON

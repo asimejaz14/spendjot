@@ -155,14 +155,12 @@ async def _extract_via_azure(
     tz = _resolve_tz(client_tz)
     anchor = _client_now(client_now, tz)
 
-    # Azure AI Foundry's OpenAI-compatible v1 surface. The key is sent as a
-    # Bearer token; `api-version=preview` is required while the v1 API is in
-    # preview.
-    version = settings.azure_openai_api_version
+    # Azure AI Foundry's OpenAI-compatible v1 surface. The API key is sent as a
+    # Bearer token. NB: the /openai/v1 path must NOT carry an `api-version`
+    # query param — it returns 400 "api-version ... not allowed" if you do.
     client = AsyncOpenAI(
         base_url=_v1_base_url(settings.azure_openai_endpoint),
         api_key=settings.azure_openai_api_key,
-        default_query={"api-version": version} if version else {},
     )
     # gpt-5-mini is a reasoning model: it rejects `temperature`, uses
     # `max_output_tokens`, and takes JSON mode via `text.format` (Responses API).
