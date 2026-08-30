@@ -70,17 +70,20 @@ services:
       # disables the endpoint (404).
       - key: CRON_SECRET
         sync: false
-      # Azure OpenAI — powers the Siri/Shortcuts voice expense extraction.
-      # ENDPOINT + API_KEY are secrets → set them in the dashboard. When they're
-      # blank the voice endpoint still works via the built-in rule-based parser.
+      # Azure OpenAI (AI Foundry) — powers the Siri/Shortcuts voice expense
+      # extraction via the OpenAI-compatible v1 Responses API. ENDPOINT + API_KEY
+      # are secrets → set them in the dashboard. When they're blank the voice
+      # endpoint still works via the built-in rule-based parser.
+      #   ENDPOINT example (base or full …/responses URL, both accepted):
+      #   https://<res>.services.ai.azure.com/api/projects/<proj>/openai/v1/responses
       - key: AZURE_OPENAI_ENDPOINT
         sync: false
       - key: AZURE_OPENAI_API_KEY
         sync: false
       - key: AZURE_OPENAI_DEPLOYMENT
-        value: gpt-4o-mini
+        value: gpt-5-mini
       - key: AZURE_OPENAI_API_VERSION
-        value: "2024-10-21"
+        value: preview
 
   # The frontend now lives on Vercel (Root Directory = frontend). It reverse-
   # proxies /api/* to this API via the default target baked into next.config.mjs

@@ -102,22 +102,29 @@ try again (nothing is saved).
 
 ## Server configuration (Azure OpenAI)
 
-Set these on the API service (Render dashboard or `render.yaml`):
+Set these on the API service (Render dashboard or `render.yaml`). This uses the
+Azure **AI Foundry** OpenAI-compatible **v1 Responses API** with a reasoning
+model (`gpt-5-mini`):
 
 | Env var | Example | Notes |
 | --- | --- | --- |
-| `AZURE_OPENAI_ENDPOINT` | `https://my-res.openai.azure.com` | secret |
+| `AZURE_OPENAI_ENDPOINT` | `https://<res>.services.ai.azure.com/api/projects/<proj>/openai/v1/responses` | secret. The base or the full `…/responses` URL both work. |
 | `AZURE_OPENAI_API_KEY` | `…` | secret — never commit |
-| `AZURE_OPENAI_DEPLOYMENT` | `gpt-4o-mini` | your deployment name |
-| `AZURE_OPENAI_API_VERSION` | `2024-10-21` | |
+| `AZURE_OPENAI_DEPLOYMENT` | `gpt-5-mini` | your deployment name |
+| `AZURE_OPENAI_API_VERSION` | `preview` | required while the v1 API is in preview |
 
 Leaving the endpoint/key blank keeps the feature working via the rule-based
-parser (just less flexible with messy phrasing).
+parser (just less flexible with messy phrasing). The voice endpoint's JSON
+response includes `"source": "azure"` or `"source": "rules"` so you can confirm
+which path ran.
 
-### Creating the Azure resource (~5 min)
+> `gpt-5-mini` is a reasoning model: the server sends no `temperature`, uses
+> `max_output_tokens`, JSON mode via `text.format`, and `reasoning: minimal` to
+> keep extraction fast.
 
-1. Azure Portal → **Create a resource → Azure OpenAI** (needs an approved
-   subscription). Note the **Endpoint** and a **Key**.
-2. Open **Azure AI Foundry / OpenAI Studio → Deployments → Deploy model →
-   `gpt-4o-mini`.** The **deployment name** you choose is `AZURE_OPENAI_DEPLOYMENT`.
+### Creating the Azure resource
+
+1. In **Azure AI Foundry**, deploy the **`gpt-5-mini`** model. The **deployment
+   name** is `AZURE_OPENAI_DEPLOYMENT`.
+2. Copy the target URI (the `…/openai/v1/responses` endpoint) and a key.
 3. Put the four values above into Render and redeploy.

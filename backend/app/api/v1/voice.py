@@ -42,6 +42,7 @@ async def voice_expense(
         return VoiceExpenseResponse(
             saved=False,
             spoken="I didn't catch the amount. Try again and include how much you spent.",
+            source=extracted.source,
         )
 
     category_id = extracted.category_id
@@ -73,4 +74,5 @@ async def voice_expense(
         saved=True,
         spoken=spoken,
         expense=ExpenseOut.model_validate(expense),
+        source=extracted.source,
     )
