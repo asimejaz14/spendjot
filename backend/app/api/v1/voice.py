@@ -1,17 +1,53 @@
 from __future__ import annotations
 
+import time
+from collections import defaultdict, deque
 from decimal import Decimal
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from sqlalchemy import select
 
 from app.api.deps import CurrentUserOrToken, DbSession
+from app.core.config import settings
+from app.core.exceptions import AppError
 from app.models.category import Category
+from app.models.user import User
 from app.schemas.expense import ExpenseCreate, ExpenseOut
-from app.schemas.voice import VoiceExpenseRequest, VoiceExpenseResponse
+from app.schemas.voice import (
+    VoiceExpenseRequest,
+    VoiceExpenseResponse,
+    VoiceExtractPreview,
+)
 from app.services import expense_service, voice_service
 
 router = APIRouter(prefix="/voice", tags=["voice"])
+
+# Per-user sliding window (in-process). Keyed by user id, so it caps a leaked
+# token or a stuck "Add another?" loop regardless of source IP.
+_hits: dict[str, deque[float]] = defaultdict(deque)
+
+
+async def _rate_limited_user(user: CurrentUserOrToken) -> User:
+    """Resolve the principal AND enforce a per-user request cap. Depends on the
+    same auth dependency as the endpoints, so the user is resolved only once."""
+    if settings.rate_limit_enabled:
+        now = time.monotonic()
+        window = _hits[str(user.id)]
+        cutoff = now - 60
+        while window and window[0] <= cutoff:
+            window.popleft()
+        if len(window) >= settings.voice_rate_per_minute:
+            raise AppError(
+                "You're adding expenses too fast. Please wait a moment.",
+                code="rate_limited",
+                status_code=429,
+            )
+        window.append(now)
+    return user
+
+
+VoicePrincipal = Annotated[User, Depends(_rate_limited_user)]
 
 
 def _spoken_amount(amount: Decimal) -> str:
@@ -23,7 +59,7 @@ def _spoken_amount(amount: Decimal) -> str:
 async def voice_expense(
     payload: VoiceExpenseRequest,
     db: DbSession,
-    current_user: CurrentUserOrToken,
+    current_user: VoicePrincipal,
 ) -> VoiceExpenseResponse:
     """One-shot: extract an expense from a dictated phrase and save it.
 
@@ -74,5 +110,31 @@ async def voice_expense(
         saved=True,
         spoken=spoken,
         expense=ExpenseOut.model_validate(expense),
+        source=extracted.source,
+    )
+
+
+@router.post("/extract-preview", response_model=VoiceExtractPreview)
+async def voice_extract_preview(
+    payload: VoiceExpenseRequest,
+    db: DbSession,
+    current_user: VoicePrincipal,
+) -> VoiceExtractPreview:
+    """Extract the fields from a phrase WITHOUT saving. Handy for confirming the
+    Azure setup (check `source`) and iterating on phrasing without creating
+    junk expenses."""
+    extracted = await voice_service.extract_expense(
+        db,
+        text=payload.text,
+        client_now=payload.client_now,
+        client_tz=payload.client_tz,
+    )
+    return VoiceExtractPreview(
+        name=extracted.name,
+        amount=extracted.amount,
+        category_id=extracted.category_id,
+        category_name=extracted.category_name,
+        spent_at=extracted.spent_at,
+        confidence=extracted.confidence,
         source=extracted.source,
     )
