@@ -4,6 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from app.schemas.common import Money
 from app.schemas.expense import ExpenseOut
 
 
@@ -29,3 +30,16 @@ class VoiceExpenseResponse(BaseModel):
     # "azure" when the AI model was used, "rules" when the fallback parser ran.
     # Handy for confirming the Azure setup is live.
     source: str | None = None
+
+
+class VoiceExtractPreview(BaseModel):
+    """The parsed fields WITHOUT saving — for testing phrasing and confirming
+    the Azure setup (check `source`) without creating junk expenses."""
+
+    name: str
+    amount: Money | None
+    category_id: int | None
+    category_name: str | None
+    spent_at: datetime
+    confidence: float
+    source: str

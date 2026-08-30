@@ -98,6 +98,21 @@ Response (always HTTP 200 so Siri can speak the result):
 If no amount could be understood, `saved` is `false` and `spoken` asks you to
 try again (nothing is saved).
 
+### Test without saving
+
+`POST /api/v1/voice/extract-preview` (same auth + body) returns the parsed
+fields **without creating a record** — use it to confirm Azure is live (check
+`source`) and iterate on phrasing:
+```json
+{ "name": "Fuel", "amount": "1200.00", "category_id": 9, "category_name": "Bike/Car Maintenance", "spent_at": "…", "confidence": 0.94, "source": "azure" }
+```
+
+### Rate limit
+
+Voice requests are capped per user (default **20/minute**) to guard against a
+leaked token or a stuck loop running up Azure cost — tune with the
+`VOICE_RATE_PER_MINUTE` env var. Over the cap returns `429`.
+
 ---
 
 ## Server configuration (Azure OpenAI)

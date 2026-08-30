@@ -87,6 +87,37 @@ async def test_api_token_rejected_on_other_endpoints(client: AsyncClient):
     assert resp.status_code == 401
 
 
+async def test_extract_preview_does_not_save(client: AsyncClient):
+    h = await _auth(client, "preview@example.com")
+
+    resp = await client.post(
+        "/api/v1/voice/extract-preview", json={"text": "shisha 500 yesterday"}, headers=h
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["amount"] == "500.00"
+    assert body["category_name"] == "Shisha"
+    assert body["source"] in {"azure", "rules"}
+
+    # Nothing was persisted.
+    assert (await client.get(EXPENSES, headers=h)).json()["total"] == 0
+
+
+async def test_voice_rate_limited_per_user(client: AsyncClient, monkeypatch):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "rate_limit_enabled", True)
+    monkeypatch.setattr(settings, "voice_rate_per_minute", 3)
+
+    h = await _auth(client, "ratelimit@example.com")
+    for _ in range(3):
+        ok = await client.post(VOICE, json={"text": "food 100"}, headers=h)
+        assert ok.status_code == 200, ok.text
+    blocked = await client.post(VOICE, json={"text": "food 100"}, headers=h)
+    assert blocked.status_code == 429
+    assert blocked.json()["error"]["code"] == "rate_limited"
+
+
 async def test_voice_falls_back_to_rules_when_azure_errors(client: AsyncClient, monkeypatch):
     """With Azure 'configured' but the call failing, the endpoint must still save
     via the rule-based parser rather than erroring."""

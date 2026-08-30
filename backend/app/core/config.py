@@ -88,6 +88,10 @@ class Settings(BaseSettings):
     azure_openai_deployment: str = "gpt-5-mini"
     azure_openai_api_version: str = "preview"
 
+    # Max voice-expense requests per user per minute. Guards against a leaked
+    # token or a runaway Shortcut loop racking up Azure cost.
+    voice_rate_per_minute: int = 20
+
     @property
     def azure_openai_enabled(self) -> bool:
         return bool(self.azure_openai_endpoint and self.azure_openai_api_key)
