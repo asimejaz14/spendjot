@@ -82,8 +82,6 @@ services:
         sync: false
       - key: AZURE_OPENAI_DEPLOYMENT
         value: gpt-5-mini
-      - key: AZURE_OPENAI_API_VERSION
-        value: preview
 
   # The frontend now lives on Vercel (Root Directory = frontend). It reverse-
   # proxies /api/* to this API via the default target baked into next.config.mjs

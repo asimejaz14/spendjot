@@ -82,11 +82,10 @@ class Settings(BaseSettings):
     # built-in rule-based parser so it still works (just less smart).
     #   endpoint: the base or the full …/openai/v1/responses URL from the portal
     #   deployment: the model deployment name (e.g. "gpt-5-mini")
-    #   api_version: "preview" for the v1 API while it's in preview
+    # (No api-version: the /openai/v1 path rejects an api-version query param.)
     azure_openai_endpoint: str = ""
     azure_openai_api_key: str = ""
     azure_openai_deployment: str = "gpt-5-mini"
-    azure_openai_api_version: str = "preview"
 
     # Max voice-expense requests per user per minute. Guards against a leaked
     # token or a runaway Shortcut loop racking up Azure cost.
