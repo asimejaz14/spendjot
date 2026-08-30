@@ -87,6 +87,31 @@ async def test_api_token_rejected_on_other_endpoints(client: AsyncClient):
     assert resp.status_code == 401
 
 
+async def test_voice_tolerates_bad_client_now_and_empty_text(client: AsyncClient):
+    h = await _auth(client, "lenient@example.com")
+
+    # A non-ISO date (like iOS 'Current Date') must NOT 422 — it's ignored.
+    ok = await client.post(
+        VOICE,
+        json={"text": "food 300", "client_now": "Aug 30, 2026 at 9:00 AM", "client_tz": "Asia/Karachi"},
+        headers=h,
+    )
+    assert ok.status_code == 200, ok.text
+    assert ok.json()["saved"] is True
+
+    # Empty/blank text → speakable 200, not a 422.
+    blank = await client.post(VOICE, json={"text": "  "}, headers=h)
+    assert blank.status_code == 200
+    assert blank.json()["saved"] is False
+
+    # Not even valid JSON → still 200 with a spoken line.
+    junk = await client.post(
+        VOICE, content=b"not json", headers={**h, "Content-Type": "application/json"}
+    )
+    assert junk.status_code == 200
+    assert junk.json()["saved"] is False
+
+
 async def test_extract_preview_does_not_save(client: AsyncClient):
     h = await _auth(client, "preview@example.com")
 

@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import time
 from collections import defaultdict, deque
+from datetime import datetime
 from decimal import Decimal
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select
 
 from app.api.deps import CurrentUserOrToken, DbSession
@@ -55,22 +56,53 @@ def _spoken_amount(amount: Decimal) -> str:
     return f"{int(amount):,} rupees"
 
 
+async def _read_body(request: Request) -> dict:
+    """Parse the request JSON as leniently as possible — a Siri Shortcut should
+    never get a raw 422, so we swallow malformed bodies and return {}."""
+    try:
+        data = await request.json()
+    except Exception:  # noqa: BLE001 — not JSON / empty body
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _lenient_dt(value: object) -> datetime | None:
+    """Best-effort parse of a client timestamp; ignore anything non-ISO (iOS
+    'Current Date' often isn't ISO) rather than failing the request."""
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        return datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
 @router.post("/expense", response_model=VoiceExpenseResponse)
 async def voice_expense(
-    payload: VoiceExpenseRequest,
+    request: Request,
     db: DbSession,
     current_user: VoicePrincipal,
 ) -> VoiceExpenseResponse:
     """One-shot: extract an expense from a dictated phrase and save it.
 
-    Always returns 200 with a `spoken` line so Siri can read the result back —
-    including the case where no amount could be understood (nothing is saved).
+    Parses the body leniently (no 422s for the Shortcut) and always returns 200
+    with a `spoken` line so Siri can read the result back — including the cases
+    where the phrase or amount couldn't be understood (nothing is saved).
     """
+    body = await _read_body(request)
+    text = str(body.get("text") or "").strip()
+    if not text:
+        return VoiceExpenseResponse(
+            saved=False,
+            spoken="I didn't catch that. Please say the expense again.",
+        )
+    client_tz = body.get("client_tz") if isinstance(body.get("client_tz"), str) else None
+
     extracted = await voice_service.extract_expense(
         db,
-        text=payload.text,
-        client_now=payload.client_now,
-        client_tz=payload.client_tz,
+        text=text[:400],
+        client_now=_lenient_dt(body.get("client_now")),
+        client_tz=client_tz,
     )
 
     # Can't save an expense with no amount — ask the user to try again.
