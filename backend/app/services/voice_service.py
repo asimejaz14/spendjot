@@ -143,6 +143,24 @@ def _v1_base_url(endpoint: str) -> str:
     return ep + "/"
 
 
+def _loads_json(raw: str) -> dict:
+    """Parse the model's reply as JSON, tolerating stray prose or ```json fences
+    by falling back to the first {...} block."""
+    raw = (raw or "").strip()
+    if not raw:
+        return {}
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        start, end = raw.find("{"), raw.rfind("}")
+        if start != -1 and end > start:
+            try:
+                return json.loads(raw[start : end + 1])
+            except json.JSONDecodeError:
+                return {}
+        return {}
+
+
 async def _extract_via_azure(
     db: AsyncSession,
     text: str,
@@ -162,20 +180,20 @@ async def _extract_via_azure(
         base_url=_v1_base_url(settings.azure_openai_endpoint),
         api_key=settings.azure_openai_api_key,
     )
-    # gpt-5-mini is a reasoning model: it rejects `temperature`, uses
-    # `max_output_tokens`, and takes JSON mode via `text.format` (Responses API).
-    # "minimal" reasoning keeps this simple extraction fast and cheap.
+    # gpt-5-mini is a reasoning model: no `temperature`, `max_output_tokens`
+    # instead of `max_tokens`. Use `instructions` (system) + a plain string
+    # `input` (the canonical Responses form; a message array trips this
+    # endpoint's stricter item-type validation). "minimal" reasoning keeps this
+    # simple extraction fast and cheap. JSON is requested in the prompt and
+    # parsed tolerantly rather than via a strict response-format param.
     resp = await client.responses.create(
         model=settings.azure_openai_deployment,  # Azure = deployment name
-        input=[
-            {"role": "system", "content": _build_prompt(categories, anchor)},
-            {"role": "user", "content": text},
-        ],
-        text={"format": {"type": "json_object"}},
+        instructions=_build_prompt(categories, anchor),
+        input=text,
         reasoning={"effort": "minimal"},
         max_output_tokens=2000,
     )
-    data = json.loads(resp.output_text or "{}")
+    data = _loads_json(resp.output_text or "")
 
     by_id = {c.id: c for c in categories}
     cat = by_id.get(_coerce_int(data.get("category_id")))
