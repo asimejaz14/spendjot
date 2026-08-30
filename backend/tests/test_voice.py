@@ -87,6 +87,28 @@ async def test_api_token_rejected_on_other_endpoints(client: AsyncClient):
     assert resp.status_code == 401
 
 
+async def test_voice_falls_back_to_rules_when_azure_errors(client: AsyncClient, monkeypatch):
+    """With Azure 'configured' but the call failing, the endpoint must still save
+    via the rule-based parser rather than erroring."""
+    from app.core.config import settings
+    from app.services import voice_service
+
+    monkeypatch.setattr(settings, "azure_openai_endpoint", "https://bogus.invalid/openai/v1/responses")
+    monkeypatch.setattr(settings, "azure_openai_api_key", "bad-key")
+
+    async def boom(*args, **kwargs):
+        raise RuntimeError("azure unreachable")
+
+    monkeypatch.setattr(voice_service, "_extract_via_azure", boom)
+
+    h = await _auth(client, "fallback@example.com")
+    resp = await client.post(VOICE, json={"text": "shisha 500"}, headers=h)
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["saved"] is True
+    assert body["source"] == "rules"
+
+
 async def test_revoked_token_cannot_post_voice(client: AsyncClient):
     h = await _auth(client, "revoked@example.com")
     created = (await client.post(TOKENS, json={"name": "Siri"}, headers=h)).json()

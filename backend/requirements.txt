@@ -13,7 +13,7 @@ aiosmtplib==3.0.2
 httpx==0.28.1
 openpyxl==3.1.5
 reportlab==4.2.5
-openai==1.59.6
+openai==3.6.0
 
 # --- dev / test ---
 aiosqlite==0.20.0

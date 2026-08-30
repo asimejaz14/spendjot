@@ -129,34 +129,55 @@ def _misc_id(categories: list[Category]) -> int:
     return categories[0].id if categories else 0
 
 
+def _v1_base_url(endpoint: str) -> str:
+    """Normalize an Azure OpenAI / AI Foundry endpoint to the OpenAI-compatible
+    v1 base URL the SDK expects (``…/openai/v1/``). Accepts either that base or
+    the full ``…/openai/v1/responses`` URL from the Foundry portal."""
+    ep = endpoint.rstrip("/")
+    for suffix in ("/responses", "/chat/completions"):
+        if ep.endswith(suffix):
+            ep = ep[: -len(suffix)]
+            break
+    if not ep.endswith("/openai/v1"):
+        ep = f"{ep}/openai/v1"
+    return ep + "/"
+
+
 async def _extract_via_azure(
     db: AsyncSession,
     text: str,
     client_now: datetime | None,
     client_tz: str | None,
 ) -> ExtractedExpense:
-    from openai import AsyncAzureOpenAI
+    from openai import AsyncOpenAI
 
     categories = await _active_categories(db)
     tz = _resolve_tz(client_tz)
     anchor = _client_now(client_now, tz)
 
-    client = AsyncAzureOpenAI(
-        azure_endpoint=settings.azure_openai_endpoint,
+    # Azure AI Foundry's OpenAI-compatible v1 surface. The key is sent as a
+    # Bearer token; `api-version=preview` is required while the v1 API is in
+    # preview.
+    version = settings.azure_openai_api_version
+    client = AsyncOpenAI(
+        base_url=_v1_base_url(settings.azure_openai_endpoint),
         api_key=settings.azure_openai_api_key,
-        api_version=settings.azure_openai_api_version,
+        default_query={"api-version": version} if version else {},
     )
-    resp = await client.chat.completions.create(
+    # gpt-5-mini is a reasoning model: it rejects `temperature`, uses
+    # `max_output_tokens`, and takes JSON mode via `text.format` (Responses API).
+    # "minimal" reasoning keeps this simple extraction fast and cheap.
+    resp = await client.responses.create(
         model=settings.azure_openai_deployment,  # Azure = deployment name
-        messages=[
+        input=[
             {"role": "system", "content": _build_prompt(categories, anchor)},
             {"role": "user", "content": text},
         ],
-        response_format={"type": "json_object"},
-        temperature=0,
-        max_tokens=200,
+        text={"format": {"type": "json_object"}},
+        reasoning={"effort": "minimal"},
+        max_output_tokens=2000,
     )
-    data = json.loads(resp.choices[0].message.content or "{}")
+    data = json.loads(resp.output_text or "{}")
 
     by_id = {c.id: c for c in categories}
     cat = by_id.get(_coerce_int(data.get("category_id")))

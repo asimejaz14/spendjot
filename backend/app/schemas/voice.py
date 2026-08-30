@@ -26,3 +26,6 @@ class VoiceExpenseResponse(BaseModel):
     saved: bool
     spoken: str
     expense: ExpenseOut | None = None
+    # "azure" when the AI model was used, "rules" when the fallback parser ran.
+    # Handy for confirming the Azure setup is live.
+    source: str | None = None
