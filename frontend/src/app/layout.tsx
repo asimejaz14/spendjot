@@ -1,17 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Sora } from "next/font/google";
+import localFont from "next/font/local";
 import { Providers } from "@/lib/providers";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
+// Fonts are self-hosted (latin-subset variable woff2 committed under ./fonts)
+// rather than fetched from Google at build time. `next/font/google` downloads
+// the font during the build, and that fetch is intermittently flaky on CI
+// (it can throw "Cannot read properties of null" when Google returns an
+// unexpected CSS shape). Shipping the files makes builds fully deterministic;
+// the runtime result is identical — next/font self-hosts either way.
+const inter = localFont({
+  src: "./fonts/Inter-latin.woff2",
+  weight: "100 900", // variable font: full weight range
+  style: "normal",
   variable: "--font-inter",
   display: "swap",
 });
 
-const sora = Sora({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const sora = localFont({
+  src: "./fonts/Sora-latin.woff2",
+  weight: "100 800", // variable font: covers 400/500/600/700 used in the UI
+  style: "normal",
   variable: "--font-sora",
   display: "swap",
 });
