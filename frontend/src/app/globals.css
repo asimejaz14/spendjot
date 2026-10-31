@@ -75,6 +75,20 @@
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
+  /*
+   * Keyboard-accessibility baseline: a single, consistent brand focus ring
+   * for every focusable element (links, nav items, custom buttons) that
+   * doesn't define its own. `:focus-visible` only shows for keyboard/AT
+   * navigation, never on mouse click. Components with a bespoke ring opt out
+   * with Tailwind's `focus-visible:outline-none` (specificity 0,2,0 beats this
+   * 0,1,0 rule), so there is never a double ring. Modern browsers already
+   * follow each element's own border-radius for the outline, so pills and
+   * cards get a ring that hugs their corners.
+   */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
   /* Tabular numbers for money everywhere it matters */
   .tnum {
     font-variant-numeric: tabular-nums;
