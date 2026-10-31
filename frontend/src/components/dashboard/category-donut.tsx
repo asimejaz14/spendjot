@@ -115,7 +115,10 @@ export function CategoryDonut({ data }: { data: CategoryBreakdown[] }) {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="min-w-0 truncate text-sm font-medium">{c.name}</span>
+                  <span className="flex min-w-0 items-baseline gap-1.5">
+                    <span className="truncate text-sm font-medium">{c.name}</span>
+                    <span className="tnum shrink-0 text-xs text-muted-foreground">{pct}%</span>
+                  </span>
                   <span className="tnum shrink-0 text-sm font-semibold">
                     {formatCurrency(c.total)}
                   </span>
@@ -131,9 +134,6 @@ export function CategoryDonut({ data }: { data: CategoryBreakdown[] }) {
                   />
                 </div>
               </div>
-              <span className="tnum w-9 shrink-0 text-right text-xs text-muted-foreground">
-                {pct}%
-              </span>
             </li>
           );
         })}
