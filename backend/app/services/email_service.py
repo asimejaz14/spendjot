@@ -244,12 +244,16 @@ def _shell(*, title: str, preheader: str, content: str, footer_note: str) -> str
     )
 
 
-def _feature(icon: str, title: str, body: str) -> str:
-    """A single 'what you can do' row: icon chip + title + one-liner."""
+def _feature(title: str, body: str) -> str:
+    """A single 'what you can do' row. The marker is a CSS brand dot inside a
+    tinted chip — reliable in every client (inline SVG is stripped by Gmail,
+    and emoji-as-icons look unprofessional)."""
     return f"""\
                 <tr>
                   <td width="48" valign="top" style="padding:9px 0;">
-                    <div style="width:38px;height:38px;border-radius:11px;background:{_MIST};border:1px solid {_LINE};text-align:center;line-height:38px;font-size:18px;">{icon}</div>
+                    <div style="width:34px;height:34px;border-radius:10px;background:{_MIST};border:1px solid {_LINE};">
+                      <div style="width:8px;height:8px;border-radius:50%;background:{_VIOLET};margin:13px auto 0;"></div>
+                    </div>
                   </td>
                   <td valign="top" style="padding:9px 0 9px 12px;">
                     <div style="font-family:{_FONT_HEAD};font-size:15px;font-weight:600;color:{_INK};line-height:1.3;">{title}</div>
@@ -293,9 +297,9 @@ def build_welcome_email(display_name: str | None) -> tuple[str, str, str]:
                 <tr>
                   <td class="sj-pad" style="padding:16px 34px 4px;">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-{_feature("⚡", "Jot in seconds", "Add an expense faster than you can find your wallet.")}
-{_feature("📊", "See where your money goes", "Clean charts and a clear monthly breakdown.")}
-{_feature("🎯", "Stay on budget", "Set a budget and always know what's safe to spend.")}
+{_feature("Jot in seconds", "Add an expense faster than you can find your wallet.")}
+{_feature("See where your money goes", "Clean charts and a clear monthly breakdown.")}
+{_feature("Stay on budget", "Set a budget and always know what's safe to spend.")}
                     </table>
                   </td>
                 </tr>
@@ -509,7 +513,7 @@ def build_pin_reset_email(
                     </div>
                     <div style="text-align:center;margin-top:14px;">
                       <span style="display:inline-block;background:{_MIST};border:1px solid {_LINE};border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;color:{_VIOLET};">
-                        ⏱ Expires in {minutes} minutes
+                        Expires in {minutes} minutes
                       </span>
                     </div>
                   </td>
