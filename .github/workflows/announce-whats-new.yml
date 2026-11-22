@@ -1,0 +1,44 @@
+name: Announce "What's new" email
+
+# One-off product announcement. Run it manually from the Actions tab:
+#   1. mode = test, test_email = your address  -> one copy to you. Check it.
+#   2. mode = all                               -> every user. No undo.
+# Uses the same CRON_SECRET repo secret as the weekly recap.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "test = one copy to test_email; all = every user"
+        type: choice
+        options: [test, all]
+        default: test
+      test_email:
+        description: "Recipient for a test send"
+        required: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send announcement
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          MODE: ${{ inputs.mode }}
+          TEST_EMAIL: ${{ inputs.test_email }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET repo secret is not set." && exit 1
+          fi
+          if [ "$MODE" = "test" ]; then
+            if [ -z "$TEST_EMAIL" ]; then echo "test_email is required for a test send." && exit 1; fi
+            body=$(jq -n --arg t "$TEST_EMAIL" '{test_to: $t}')
+          else
+            body='{"confirm_all": true}'
+          fi
+          code=$(curl -sS -o /tmp/out.json -w "%{http_code}" -X POST \
+            "https://spendjot-api.onrender.com/api/v1/internal/announce/whats-new" \
+            -H "X-Cron-Secret: $CRON_SECRET" -H "Content-Type: application/json" \
+            -d "$body" --max-time 600)
+          echo "HTTP $code"; cat /tmp/out.json || true; echo
+          test "$code" = "200"

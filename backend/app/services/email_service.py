@@ -30,15 +30,15 @@ if TYPE_CHECKING:
 logger = logging.getLogger("spendjot.email")
 
 # Brand palette (from the Spend Jot brand kit).
-_INK = "#13111C"
-_VIOLET = "#7C3AED"
-_VIOLET_DK = "#4F46E5"
-_LILAC = "#E9D5FF"
-_MIST = "#F6F4FF"
-_MUTED = "#6B6580"
-_LINE = "#E7E3F5"
-_FAINT = "#9A95AD"
-_GRADIENT = "linear-gradient(135deg,#8B5CF6 0%,#6D5DEF 50%,#4F46E5 100%)"
+_INK = "#18181B"  # charcoal text
+_BRAND = "#153D30"  # Forest — brand colour
+_BRAND_DK = "#0A241C"
+_MINT = "#97D8BE"  # "Jot" in the header wordmark
+_MIST = "#F7F8F7"
+_MUTED = "#63636B"
+_LINE = "#E4E7E5"
+_FAINT = "#9A9AA3"
+_GRADIENT = "linear-gradient(135deg,#28624F 0%,#153D30 50%,#0A241C 100%)"
 _FONT_HEAD = "'Sora','Segoe UI',Roboto,Helvetica,Arial,sans-serif"
 _FONT_BODY = "'Inter','Segoe UI',Roboto,Helvetica,Arial,sans-serif"
 
@@ -156,12 +156,13 @@ def _preheader(text: str) -> str:
 def _button(href: str, label: str) -> str:
     """Bulletproof CTA: a VML round-rect for Outlook, a gradient anchor
     everywhere else."""
+    vml_width = max(230, len(label) * 9 + 64)  # Outlook can't size to content
     return f"""\
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
                 <tr>
-                  <td align="center" bgcolor="{_VIOLET}" style="border-radius:12px;background:{_VIOLET};background-image:{_GRADIENT};">
+                  <td align="center" bgcolor="{_BRAND}" style="border-radius:12px;background:{_BRAND};background-image:{_GRADIENT};">
                     <!--[if mso]>
-                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{href}" style="height:48px;v-text-anchor:middle;width:230px;" arcsize="25%" strokecolor="{_VIOLET}" fillcolor="{_VIOLET}">
+                    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{href}" style="height:48px;v-text-anchor:middle;width:{vml_width}px;" arcsize="25%" strokecolor="{_BRAND}" fillcolor="{_BRAND}">
                     <w:anchorlock/>
                     <center style="color:#ffffff;font-family:{_FONT_HEAD};font-size:15px;font-weight:bold;">{label}</center>
                     </v:roundrect>
@@ -182,11 +183,11 @@ def _shell(*, title: str, preheader: str, content: str, footer_note: str) -> str
 
     header = f"""\
           <tr>
-            <td align="center" bgcolor="{_VIOLET}" style="background:{_VIOLET};background-image:{_GRADIENT};padding:38px 24px 32px;">
+            <td align="center" bgcolor="{_BRAND}" style="background:{_BRAND};background-image:{_GRADIENT};padding:38px 24px 32px;">
               <img src="{logo_url}" width="60" height="60" alt="Spend Jot"
                    style="display:block;border:0;border-radius:16px;margin:0 auto 14px;">
               <div style="font-family:{_FONT_HEAD};font-size:24px;font-weight:700;color:#ffffff;letter-spacing:-0.01em;">
-                Spend<span style="color:{_LILAC};">Jot</span>
+                Spend<span style="color:{_MINT};">Jot</span>
               </div>
             </td>
           </tr>"""
@@ -198,7 +199,7 @@ def _shell(*, title: str, preheader: str, content: str, footer_note: str) -> str
                 {footer_note}
               </p>
               <p style="margin:0;font-size:12px;line-height:1.6;color:{_FAINT};text-align:center;">
-                <a href="{app_url}" style="color:{_VIOLET};text-decoration:none;font-weight:600;">Spend&nbsp;Jot</a>
+                <a href="{app_url}" style="color:{_BRAND};text-decoration:none;font-weight:600;">Spend&nbsp;Jot</a>
                 &nbsp;·&nbsp;Expense tracking, jotted in seconds.<br>
                 &copy; {year} Spend Jot
               </p>
@@ -252,7 +253,7 @@ def _feature(title: str, body: str) -> str:
                 <tr>
                   <td width="48" valign="top" style="padding:9px 0;">
                     <div style="width:34px;height:34px;border-radius:10px;background:{_MIST};border:1px solid {_LINE};">
-                      <div style="width:8px;height:8px;border-radius:50%;background:{_VIOLET};margin:13px auto 0;"></div>
+                      <div style="width:8px;height:8px;border-radius:50%;background:{_BRAND};margin:13px auto 0;"></div>
                     </div>
                   </td>
                   <td valign="top" style="padding:9px 0 9px 12px;">
@@ -512,7 +513,7 @@ def build_pin_reset_email(
                       <div style="font-family:{_FONT_HEAD};font-size:34px;font-weight:700;letter-spacing:8px;color:{_INK};line-height:1.1;">{spaced_code}</div>
                     </div>
                     <div style="text-align:center;margin-top:14px;">
-                      <span style="display:inline-block;background:{_MIST};border:1px solid {_LINE};border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;color:{_VIOLET};">
+                      <span style="display:inline-block;background:{_MIST};border:1px solid {_LINE};border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;color:{_BRAND};">
                         Expires in {minutes} minutes
                       </span>
                     </div>
@@ -539,4 +540,70 @@ async def send_pin_reset_email(to_email: str, display_name: str | None, code: st
     subject, html, text = build_pin_reset_email(
         display_name, code, settings.otp_expire_minutes
     )
+    return await send_email(to=to_email, subject=subject, html=html, text=text)
+
+
+# ---------------------------------------------------------------------------
+# "What's new" product announcement
+# ---------------------------------------------------------------------------
+
+def build_whats_new_email(display_name: str | None) -> tuple[str, str, str]:
+    """Return (subject, html, text) for the bulk-add / month-picker release note."""
+    name = _first_name(display_name)
+    greeting = f"Hi {name}, here's what's new" if name else "Here's what's new"
+    cta_url = f"{_app_url()}/dashboard"
+    subject = "New in Spend Jot: add many expenses at once"
+    preheader = "Paste straight from Excel, look back at any month, and a fresh new look."
+
+    features = [
+        ("Add many expenses at once",
+         "Type several rows, paste straight from Excel or Google Sheets, or import a file."),
+        ("Look back at any month",
+         "Pick a previous month on your dashboard to see exactly where it went."),
+        ("A fresh, faster feel",
+         "A new forest-green look, a smarter date picker and smoother menus."),
+    ]
+
+    text = (
+        f"{greeting} in Spend Jot:\n\n"
+        + "".join(f"• {t} — {b}\n" for t, b in features)
+        + f"\nCatch up on your spending: {cta_url}\n\n"
+        "— The Spend Jot team\n"
+        "You're receiving this because you have a Spend Jot account."
+    )
+
+    rows = "\n".join(_feature(t, b) for t, b in features)
+    content = f"""\
+                <tr>
+                  <td class="sj-pad" style="padding:36px 34px 4px;">
+                    <h1 class="sj-h1" style="margin:0 0 8px;font-family:{_FONT_HEAD};font-size:22px;font-weight:700;color:{_INK};line-height:1.25;">{greeting}</h1>
+                    <p style="margin:0;font-size:15px;line-height:1.6;color:{_MUTED};">
+                      A few upgrades to make tracking quicker:
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="sj-pad" style="padding:16px 34px 4px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+{rows}
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" class="sj-pad" style="padding:28px 34px 38px;">
+{_button(cta_url, "Catch up on your spending")}
+                  </td>
+                </tr>"""
+
+    html = _shell(
+        title=subject,
+        preheader=preheader,
+        content=content,
+        footer_note="You're receiving this because you have a Spend Jot account.",
+    )
+    return subject, html, text
+
+
+async def send_whats_new_email(to_email: str, display_name: str | None) -> bool:
+    subject, html, text = build_whats_new_email(display_name)
     return await send_email(to=to_email, subject=subject, html=html, text=text)
