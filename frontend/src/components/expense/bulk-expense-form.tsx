@@ -208,7 +208,7 @@ export function BulkExpenseForm({ onSuccess }: { onSuccess: () => void }) {
           <ClipboardPaste className="mt-0.5 h-4 w-4 shrink-0" />
           <span>
             Copy rows from Excel or Google Sheets and <strong className="text-foreground">paste</strong>{" "}
-            into any field — columns: Name, Amount, Category, Date (time optional), Note.
+            into any field — columns: Name, Amount, Category, Date, Time, Note.
           </span>
         </p>
         <div className="flex shrink-0 gap-2">

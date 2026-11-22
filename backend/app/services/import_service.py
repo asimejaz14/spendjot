@@ -5,7 +5,8 @@ editable grid, the user fixes anything flagged, then saves via the bulk-create
 endpoint. Accepts .xlsx, .csv and tab-separated text (what Excel/Sheets put on
 the clipboard). Headers are matched loosely ("Item", "Price", "When"…); without
 a recognisable header row the columns are read as Name, Amount, Category, Date,
-Note.
+Time, Note (a 5th cell that isn't a time is taken as the Note). A Time column
+overrides any time inside the Date cell; rows with no time default to midday.
 """
 from __future__ import annotations
 
@@ -29,14 +30,17 @@ from app.services.parse_service import guess_category
 MAX_ROWS = 200
 MAX_BYTES = 2 * 1024 * 1024  # 2 MB is thousands of rows; anything bigger is a mistake.
 
-COLUMNS = ("name", "amount", "category", "date", "note")
+COLUMNS = ("name", "amount", "category", "date", "time", "note")
 _HEADER_ALIASES: dict[str, set[str]] = {
     "name": {"name", "item", "expense", "title", "what", "details", "particulars", "spent on"},
     "amount": {"amount", "price", "cost", "total", "rs", "pkr", "value", "amount (rs)", "spent"},
     "category": {"category", "type", "group", "kind"},
-    "date": {"date", "spent_at", "spent at", "when", "day", "datetime", "date & time", "time"},
+    "date": {"date", "spent_at", "spent at", "when", "day", "datetime", "date & time"},
+    "time": {"time", "at", "hour", "time of day"},
     "note": {"note", "notes", "description", "comment", "comments", "memo", "remarks"},
 }
+
+_TIME_FORMATS = ("%H:%M", "%H:%M:%S", "%I:%M %p", "%I:%M:%S %p", "%I:%M%p", "%I %p", "%I%p")
 
 _DATE_FORMATS = (
     "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M", "%Y-%m-%d",
@@ -145,7 +149,9 @@ def _parse_date(v: object) -> tuple[str | None, bool]:
     if v is None or str(v).strip() == "":
         return None, False
     if isinstance(v, datetime):
-        dt = v
+        # Excel has no date-only type: a typed date reads back as 00:00. Treat
+        # exact midnight as "no time given" → midday, like date-only text.
+        dt = v.replace(hour=12, minute=0) if v.time() == time(0, 0) else v
     elif isinstance(v, date):
         dt = datetime.combine(v, time(12, 0))
     else:
@@ -162,6 +168,30 @@ def _parse_date(v: object) -> tuple[str | None, bool]:
         if "%H" not in fmt:  # date only → midday, so timezones can't shift the day
             dt = dt.replace(hour=12, minute=0)
     return dt.strftime("%Y-%m-%dT%H:%M"), True
+
+
+def _parse_time(v: object) -> tuple[time | None, bool]:
+    """(time | None, had_a_value). Accepts Excel time cells, day fractions,
+    "14:30", "2:30 PM", "2pm"…"""
+    if v is None or str(v).strip() == "":
+        return None, False
+    if isinstance(v, datetime):  # Excel sometimes stores times as 1899-12-30 hh:mm
+        return v.time().replace(second=0, microsecond=0), True
+    if isinstance(v, time):
+        return v.replace(second=0, microsecond=0), True
+    if isinstance(v, (int, float)) and not isinstance(v, bool) and 0 <= v < 1:
+        minutes = round(float(v) * 24 * 60)  # unformatted Excel time = fraction of a day
+        return time(minutes // 60 % 24, minutes % 60), True
+    s = re.sub(r"\s+", " ", str(v)).strip().upper()
+    s = s.replace("A.M.", "AM").replace("P.M.", "PM")
+    if ":" not in s:
+        s = s.replace(".", ":", 1)  # "14.30" → "14:30"
+    for fmt in _TIME_FORMATS:
+        try:
+            return datetime.strptime(s, fmt).time(), True
+        except ValueError:
+            continue
+    return None, True
 
 
 def _match_category(
@@ -197,6 +227,7 @@ async def parse_table(db: AsyncSession, filename: str, content: bytes) -> Import
         raise AppError("That sheet looks empty.", code="empty_file")
     cols = _header_map(table[first])
     data = table[first + 1 :] if cols else table[first:]
+    positional = cols is None
     if cols is None:
         cols = {c: i for i, c in enumerate(COLUMNS)}
 
@@ -239,7 +270,22 @@ async def parse_table(db: AsyncSession, filename: str, content: bytes) -> Import
         if had_date and d.spent_at is None:
             d.warnings.append("Couldn't read the date")
 
-        note = str(cell(raw, "note") or "").strip()
+        time_raw, note_raw = cell(raw, "time"), cell(raw, "note")
+        t, had_time = _parse_time(time_raw)
+        if positional and had_time and t is None and note_raw in (None, ""):
+            # Header-less paste in the older 5-column shape (…, Date, Note):
+            # the 5th cell isn't a time, so it's the note.
+            t, had_time, note_raw = None, False, time_raw
+        if had_time and t is None:
+            d.warnings.append("Couldn't read the time")
+        elif t is not None:
+            # A Time column wins over any time inside the Date cell. With no
+            # date at all, the time applies to today.
+            day = d.spent_at[:10] if d.spent_at else date.today().isoformat()
+            if d.spent_at or not had_date:
+                d.spent_at = f"{day}T{t.strftime('%H:%M')}"
+
+        note = str(note_raw or "").strip()
         d.description = note[:2000] or None
         rows.append(d)
 
@@ -252,7 +298,7 @@ async def parse_table(db: AsyncSession, filename: str, content: bytes) -> Import
 
 
 async def build_template(db: AsyncSession) -> bytes:
-    """A ready-to-fill .xlsx: headers, two examples, a category dropdown."""
+    """A ready-to-fill .xlsx: headers, examples, a category dropdown, time column."""
     categories = list(
         (
             await db.scalars(
@@ -264,19 +310,24 @@ async def build_template(db: AsyncSession) -> bytes:
     wb = Workbook()
     ws = wb.active
     ws.title = "Expenses"
-    headers = ["Name", "Amount", "Category", "Date", "Note"]
+    headers = ["Name", "Amount", "Category", "Date", "Time", "Note"]
     ws.append(headers)
     head_fill = PatternFill("solid", fgColor="153D30")
     for c in ws[1]:
         c.font = Font(bold=True, color="FFFFFF")
         c.fill = head_fill
     today = date.today()
-    ws.append(["Lunch at Kolachi", 1500, categories[0].name if categories else "", today, ""])
-    ws.append(["Careem ride", 450, "Travel", today, "Office"])
-    for row in ws.iter_rows(min_row=2, max_row=3, min_col=4, max_col=4):
-        for c in row:
-            c.number_format = "yyyy-mm-dd"
-    for col, width in zip("ABCDE", (32, 12, 22, 14, 30)):
+    first_cat = categories[0].name if categories else ""
+    ws.append(["Lunch at Kolachi", 1500, first_cat, today, time(13, 30), ""])
+    ws.append(["Careem ride", 450, "Travel", today, time(9, 15), "Office"])
+    ws.append(["Groceries (no time → 12:00 PM)", 3200, "Grocery", today, None, ""])
+    # Pre-format the whole input range so typed dates/times stay real Excel values.
+    last = MAX_ROWS + 1
+    for (c,) in ws.iter_rows(min_row=2, max_row=last, min_col=4, max_col=4):
+        c.number_format = "yyyy-mm-dd"
+    for (c,) in ws.iter_rows(min_row=2, max_row=last, min_col=5, max_col=5):
+        c.number_format = "h:mm AM/PM"
+    for col, width in zip("ABCDEF", (32, 12, 22, 14, 12, 30)):
         ws.column_dimensions[col].width = width
     ws.freeze_panes = "A2"
 

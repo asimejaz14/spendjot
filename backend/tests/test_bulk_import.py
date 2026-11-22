@@ -128,10 +128,58 @@ async def test_template_round_trips(auth_client: AsyncClient):
     r = await auth_client.get(f"{EXPENSES}/import/template")
     assert r.status_code == 200
     wb = load_workbook(io.BytesIO(r.content))
-    assert [c.value for c in wb["Expenses"][1]] == ["Name", "Amount", "Category", "Date", "Note"]
+    assert [c.value for c in wb["Expenses"][1]] == [
+        "Name", "Amount", "Category", "Date", "Time", "Note"
+    ]
     assert wb["Categories"].max_row >= 5
 
-    # The template's own example rows import cleanly.
+    # The template's own example rows import cleanly, times included.
     p = await _preview(auth_client, "spendjot-import-template.xlsx", r.content)
     assert p.status_code == 200
-    assert all(row["warnings"] == [] for row in p.json()["rows"])
+    rows = p.json()["rows"]
+    assert len(rows) == 3
+    assert all(row["warnings"] == [] for row in rows)
+    assert [row["spent_at"][11:] for row in rows] == ["13:30", "09:15", "12:00"]
+
+
+async def test_preview_separate_time_column(auth_client: AsyncClient):
+    from datetime import time as dtime
+
+    content = _xlsx(
+        [
+            ["Name", "Amount", "Date", "Time"],
+            ["Excel time cell", 100, datetime(2026, 11, 1), dtime(14, 30)],
+            ["12h text", 100, "2026-11-01", "2:05 pm"],
+            ["Day fraction", 100, "2026-11-01", 0.75],  # unformatted Excel 18:00
+            ["Time beats date-time", 100, datetime(2026, 11, 1, 8, 0), "21:10"],
+            ["No time", 100, "2026-11-01", None],
+            ["Bad time", 100, "2026-11-01", "lunchtime"],
+        ]
+    )
+    r = await _preview(auth_client, "times.xlsx", content)
+    assert r.status_code == 200, r.text
+    rows = r.json()["rows"]
+    assert [x["spent_at"] for x in rows] == [
+        "2026-11-01T14:30",
+        "2026-11-01T14:05",
+        "2026-11-01T18:00",
+        "2026-11-01T21:10",
+        "2026-11-01T12:00",
+        "2026-11-01T12:00",
+    ]
+    assert rows[5]["warnings"] == ["Couldn't read the time"]
+
+
+async def test_paste_positional_time_or_note(auth_client: AsyncClient):
+    pasted = (
+        "Chai\t120\tFood\t2026-11-21\t08:15\tmorning\n"  # 6 cols: …, Date, Time, Note
+        "Fuel\t3000\tbike\t2026-11-21\tfull tank\n"  # old 5 cols: …, Date, Note
+    )
+    r = await _preview(auth_client, "paste.tsv", pasted.encode())
+    assert r.status_code == 200, r.text
+    chai, fuel = r.json()["rows"]
+    assert chai["spent_at"] == "2026-11-21T08:15"
+    assert chai["description"] == "morning"
+    assert fuel["spent_at"] == "2026-11-21T12:00"
+    assert fuel["description"] == "full tank"
+    assert fuel["warnings"] == []
