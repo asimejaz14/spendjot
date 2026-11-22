@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
 
 const config: Config = {
   darkMode: "class",
@@ -66,20 +67,23 @@ const config: Config = {
         "in-out-strong": "cubic-bezier(0.77, 0, 0.175, 1)",
       },
       backgroundImage: {
-        brand: "linear-gradient(135deg, #8B5CF6 0%, #6D5DEF 50%, #4F46E5 100%)",
+        // Forest (#153D30) brand gradient — token-driven so dark mode can lift it.
+        brand:
+          "linear-gradient(135deg, hsl(var(--brand-1)) 0%, hsl(var(--brand-2)) 50%, hsl(var(--brand-3)) 100%)",
         "brand-soft":
-          "linear-gradient(135deg, rgba(139,92,246,0.12) 0%, rgba(79,70,229,0.12) 100%)",
+          "linear-gradient(135deg, hsl(var(--foreground) / 0.07) 0%, hsl(var(--foreground) / 0.04) 100%)",
         // Animated hero mesh — pairs with `animate-gradient-pan` (bg-[length:200%_200%]).
         "brand-mesh":
-          "linear-gradient(120deg, #7C3AED 0%, #6D5DEF 35%, #4F46E5 65%, #8B5CF6 100%)",
+          "linear-gradient(120deg, hsl(var(--brand-2)) 0%, hsl(var(--brand-1)) 35%, hsl(var(--brand-3)) 65%, hsl(var(--brand-2)) 100%)",
         sheen:
-          "linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.55) 50%, transparent 80%)",
+          "linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.35) 50%, transparent 80%)",
       },
+      // Black shadows; --shadow-strength deepens them on the dark theme.
       boxShadow: {
-        soft: "0 1px 2px rgba(19,17,28,0.04), 0 8px 24px -12px rgba(79,70,229,0.18)",
-        glow: "0 10px 40px -12px rgba(124,58,237,0.45)",
-        "glow-lg": "0 24px 70px -24px rgba(124,58,237,0.6)",
-        lift: "0 1px 2px rgba(19,17,28,0.05), 0 18px 40px -18px rgba(79,70,229,0.35)",
+        soft: "0 1px 2px hsl(var(--shadow-color) / calc(0.05 * var(--shadow-strength))), 0 8px 24px -12px hsl(var(--shadow-color) / calc(0.18 * var(--shadow-strength)))",
+        glow: "0 10px 40px -12px hsl(var(--shadow-color) / calc(0.35 * var(--shadow-strength)))",
+        "glow-lg": "0 24px 70px -24px hsl(var(--shadow-color) / calc(0.5 * var(--shadow-strength)))",
+        lift: "0 1px 2px hsl(var(--shadow-color) / calc(0.06 * var(--shadow-strength))), 0 18px 40px -18px hsl(var(--shadow-color) / calc(0.3 * var(--shadow-strength)))",
       },
       keyframes: {
         "fade-in": {
@@ -137,7 +141,14 @@ const config: Config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    // `hover-on:` = hover, but never on a disabled control (keeps the
+    // not-allowed cursor from lighting the button up).
+    plugin(({ addVariant }) => {
+      addVariant("hover-on", "&:not(:disabled):hover");
+    }),
+  ],
 };
 
 export default config;

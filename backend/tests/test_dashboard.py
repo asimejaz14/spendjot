@@ -91,3 +91,31 @@ async def test_update_profile_theme(auth_client: AsyncClient):
     assert resp.status_code == 200
     assert resp.json()["theme"] == "dark"
     assert resp.json()["display_name"] == "Asim"
+
+
+async def test_month_param_scopes_dashboard_to_past_month(auth_client: AsyncClient):
+    now = datetime.now(timezone.utc)
+    first = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    prev = first - timedelta(days=3)  # a date in the previous month
+    key = f"{prev.year:04d}-{prev.month:02d}"
+
+    await _add(auth_client, "Old dinner", "3000", 1, prev)
+    await _add(auth_client, "This month", "500", 2, now)
+
+    s = (await auth_client.get("/api/v1/dashboard/summary", params={"month": key})).json()
+    assert s["month_total"] == "3000.00"
+    assert s["expense_count"] == 1
+
+    d = (await auth_client.get("/api/v1/dashboard/daily", params={"month": key})).json()
+    # A finished month has a real value for every day (no future "None" days).
+    assert all(p["total"] is not None for p in d["points"])
+    assert sum(float(p["total"]) for p in d["points"]) == 3000.0
+
+    i = (await auth_client.get("/api/v1/dashboard/insights", params={"month": key})).json()
+    assert i["this_month_total"] == "3000.00"
+
+    p = (await auth_client.get("/api/v1/budgets/progress", params={"month": key})).json()
+    assert p["overall"]["spent"] == "3000.00"
+
+    bad = await auth_client.get("/api/v1/dashboard/summary", params={"month": "2026-13"})
+    assert bad.status_code == 422

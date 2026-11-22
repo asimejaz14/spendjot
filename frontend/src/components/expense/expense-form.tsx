@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -191,7 +192,31 @@ export function ExpenseForm({ expense, onSuccess }: ExpenseFormProps) {
 
       <div className="space-y-1.5">
         <Label htmlFor="spent_at">When?</Label>
-        <Input id="spent_at" type="datetime-local" className="tnum" {...register("spent_at")} />
+        {/* Animated date picker + native time field; stored as "yyyy-MM-ddTHH:mm". */}
+        <Controller
+          control={control}
+          name="spent_at"
+          render={({ field }) => {
+            const [datePart = "", timePart = "12:00"] = (field.value ?? "").split("T");
+            return (
+              <div className="grid grid-cols-[1fr_auto] gap-2">
+                <DatePicker
+                  id="spent_at"
+                  value={datePart}
+                  onChange={(d) => field.onChange(d ? `${d}T${timePart}` : "")}
+                />
+                <Input
+                  type="time"
+                  aria-label="Time"
+                  className="tnum w-[7.5rem]"
+                  value={timePart}
+                  onChange={(e) => field.onChange(`${datePart}T${e.target.value || "00:00"}`)}
+                  onBlur={field.onBlur}
+                />
+              </div>
+            );
+          }}
+        />
         {errors.spent_at && <FieldError>{errors.spent_at.message}</FieldError>}
       </div>
 

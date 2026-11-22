@@ -9,8 +9,9 @@ import { formatCurrency } from "@/lib/format";
 import { useInsights } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
-export function InsightsCard() {
-  const { data, isLoading } = useInsights();
+export function InsightsCard({ month }: { month?: string }) {
+  const { data, isLoading } = useInsights(month);
+  const isCurrent = !month;
 
   if (isLoading) return <Skeleton className="h-44 rounded-2xl" />;
   if (!data) return null;
@@ -56,9 +57,10 @@ export function InsightsCard() {
                 <span className={cn("font-semibold", up ? "text-rose-500" : "text-emerald-500")}>
                   {up ? "up" : "down"} {pctLabel}
                 </span>{" "}
-                vs last month
+                vs {isCurrent ? "last month" : "the month before"}
                 <span className="block text-xs text-muted-foreground">
-                  {formatCurrency(this_month_total)} this month · {formatCurrency(last_month_total)} last
+                  {formatCurrency(this_month_total)} {isCurrent ? "this month" : data.this_month_label} ·{" "}
+                  {formatCurrency(last_month_total)} {isCurrent ? "last" : "prior"}
                 </span>
               </>
             )}
@@ -76,7 +78,8 @@ export function InsightsCard() {
                 {moverUp ? "up" : "down"} {formatCurrency(Math.abs(Number(top_mover.delta)))}
               </span>
               <span className="block text-xs text-muted-foreground">
-                {formatCurrency(top_mover.this_month)} vs {formatCurrency(top_mover.last_month)} last month
+                {formatCurrency(top_mover.this_month)} vs {formatCurrency(top_mover.last_month)}{" "}
+                {isCurrent ? "last month" : "the month before"}
               </span>
             </p>
           </div>
@@ -89,7 +92,7 @@ export function InsightsCard() {
               <Receipt className="h-4 w-4" />
             </span>
             <p className="text-sm">
-              Largest expense this month:{" "}
+              Largest expense {isCurrent ? "this month" : `in ${data.this_month_label}`}:{" "}
               <span className="font-semibold">{biggest_expense.name}</span>
               <span className="block text-xs text-muted-foreground">
                 {formatCurrency(biggest_expense.amount)} · {biggest_expense.category_name}

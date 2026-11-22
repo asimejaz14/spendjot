@@ -2,10 +2,12 @@
 
 import { Plus, Sparkles, WalletMinimal } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { BudgetProgressCard } from "@/components/dashboard/budget-progress";
 import { CategoryDonut } from "@/components/dashboard/category-donut";
 import { InsightsCard } from "@/components/dashboard/insights-card";
 import { DailyLine } from "@/components/dashboard/daily-line";
+import { CURRENT_MONTH, MonthFilter, toMonthParam } from "@/components/dashboard/month-filter";
 import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { ExpenseDialog } from "@/components/expense/expense-dialog";
 import { ExpenseList } from "@/components/expense/expense-list";
@@ -20,8 +22,13 @@ import { useDailySeries, useDashboardSummary } from "@/lib/queries";
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const summaryQuery = useDashboardSummary();
-  const dailyQuery = useDailySeries();
+  const [selectedMonth, setSelectedMonth] = useState<string>(CURRENT_MONTH);
+  const month = toMonthParam(selectedMonth);
+  const isCurrent = month === undefined;
+  const summaryQuery = useDashboardSummary(month);
+  const dailyQuery = useDailySeries(month);
+  // Dim (don't blank) the page while a newly picked month loads.
+  const switching = summaryQuery.isPlaceholderData;
 
   const firstName = user?.display_name?.split(" ")[0];
   const greeting = getGreeting();
@@ -29,7 +36,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <FadeIn>
-        <header className="flex items-center justify-between gap-4">
+        <header className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="font-display text-2xl font-bold tracking-tight">
               {firstName ? (
@@ -40,15 +47,26 @@ export default function DashboardPage() {
                 "Dashboard"
               )}
             </h1>
-            <p className="text-sm text-muted-foreground">Here&apos;s your spending at a glance.</p>
+            <p className="text-sm text-muted-foreground">
+              {isCurrent
+                ? "Here’s your spending at a glance."
+                : `Looking back at ${summaryQuery.data?.month_label ?? "a past month"}.`}
+            </p>
           </div>
-          <ExpenseDialog
-            trigger={
-              <Button variant="brand" className="hidden sm:inline-flex">
-                <Plus className="h-5 w-5" /> Add expense
-              </Button>
-            }
-          />
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <MonthFilter
+              value={selectedMonth}
+              onChange={setSelectedMonth}
+              className="flex-1 sm:flex-none"
+            />
+            <ExpenseDialog
+              trigger={
+                <Button variant="brand" className="hidden sm:inline-flex">
+                  <Plus className="h-5 w-5" /> Add expense
+                </Button>
+              }
+            />
+          </div>
         </header>
       </FadeIn>
 
@@ -63,8 +81,16 @@ export default function DashboardPage() {
       ) : summaryQuery.data && summaryQuery.data.expense_count === 0 ? (
         <EmptyState
           icon={<WalletMinimal className="h-7 w-7" />}
-          title="No expenses yet this month"
-          description="Add your first expense to start seeing where your money goes."
+          title={
+            isCurrent
+              ? "No expenses yet this month"
+              : `No expenses in ${summaryQuery.data.month_label}`
+          }
+          description={
+            isCurrent
+              ? "Add your first expense to start seeing where your money goes."
+              : "Pick another month, or add an expense dated in this one."
+          }
           action={
             <ExpenseDialog
               trigger={
@@ -76,15 +102,18 @@ export default function DashboardPage() {
           }
         />
       ) : summaryQuery.data ? (
-        <>
-          <SummaryCards summary={summaryQuery.data} />
+        <div
+          className={`space-y-6 transition-opacity duration-200 ${switching ? "opacity-60" : ""}`}
+          aria-busy={switching}
+        >
+          <SummaryCards summary={summaryQuery.data} isCurrent={isCurrent} />
 
           <Reveal className="grid gap-4 lg:grid-cols-2">
             <div className="min-w-0">
-              <BudgetProgressCard />
+              <BudgetProgressCard month={month} />
             </div>
             <div className="min-w-0">
-              <InsightsCard />
+              <InsightsCard month={month} />
             </div>
           </Reveal>
 
@@ -145,7 +174,7 @@ export default function DashboardPage() {
               </CardContent>
             </SpotlightCard>
           </Reveal>
-        </>
+        </div>
       ) : null}
     </div>
   );

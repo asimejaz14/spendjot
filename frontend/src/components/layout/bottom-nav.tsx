@@ -17,12 +17,18 @@ export function BottomNav() {
       <div className="fixed bottom-20 right-4 z-40 md:hidden">
         <ExpenseDialog
           trigger={
-            <button
+            <motion.button
+              type="button"
               aria-label="Add expense"
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-glow outline-none ring-offset-background transition active:scale-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              initial={{ scale: 0, rotate: -90 }}
+              animate={{ scale: 1, rotate: 0 }}
+              whileHover={{ scale: 1.06, rotate: 90 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 420, damping: 22 }}
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-glow outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <Plus className="h-6 w-6" />
-            </button>
+            </motion.button>
           }
         />
       </div>

@@ -45,15 +45,15 @@ export function DailyLine({ data }: { data: DailyPoint[] }) {
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={chartData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
           <defs>
-            {/* soft violet wash under the line */}
+            {/* soft forest wash under the line */}
             <linearGradient id="dailyFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.35} />
-              <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0} />
+              <stop offset="0%" style={{ stopColor: "hsl(var(--primary))", stopOpacity: 0.22 }} />
+              <stop offset="100%" style={{ stopColor: "hsl(var(--primary))", stopOpacity: 0 }} />
             </linearGradient>
             {/* brand gradient stroke */}
             <linearGradient id="dailyStroke" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#8B5CF6" />
-              <stop offset="100%" stopColor="#4F46E5" />
+              <stop offset="0%" style={{ stopColor: "hsl(var(--chart-3))" }} />
+              <stop offset="100%" style={{ stopColor: "hsl(var(--chart-1))" }} />
             </linearGradient>
           </defs>
           <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeDasharray="3 3" />
@@ -84,7 +84,7 @@ export function DailyLine({ data }: { data: DailyPoint[] }) {
             strokeWidth={2.5}
             fill="url(#dailyFill)"
             dot={false}
-            activeDot={{ r: 5, fill: "#7C3AED", stroke: "#fff", strokeWidth: 2 }}
+            activeDot={{ r: 5, fill: "hsl(var(--primary))", stroke: "hsl(var(--card))", strokeWidth: 2 }}
             animationBegin={150}
             animationDuration={1100}
           />

@@ -14,8 +14,8 @@ from app.core.timeutils import (
     MONTH_NAMES,
     add_months,
     as_utc,
+    month_reference,
     month_start,
-    now_utc,
 )
 from app.models.expense import Expense
 from app.models.user import User
@@ -32,8 +32,10 @@ from app.schemas.dashboard import (
 )
 
 
-async def get_summary(db: AsyncSession, user: User, recent_limit: int = 8) -> DashboardSummary:
-    now = now_utc()
+async def get_summary(
+    db: AsyncSession, user: User, recent_limit: int = 8, month: str | None = None
+) -> DashboardSummary:
+    now = month_reference(month)
     start = month_start(now)
     nxt = add_months(now, 1)
 
@@ -88,7 +90,7 @@ async def get_summary(db: AsyncSession, user: User, recent_limit: int = 8) -> Da
 
 
 async def get_monthly_series(db: AsyncSession, user: User, months: int = 6) -> MonthlySeries:
-    now = now_utc()
+    now = month_reference(None)
     start = add_months(now, -(months - 1))
 
     stmt = select(Expense).where(
@@ -121,14 +123,16 @@ async def get_monthly_series(db: AsyncSession, user: User, months: int = 6) -> M
     return MonthlySeries(points=points)
 
 
-async def get_daily_series(db: AsyncSession, user: User) -> DailySeries:
+async def get_daily_series(
+    db: AsyncSession, user: User, month: str | None = None
+) -> DailySeries:
     """Per-day spending for the current month: day 1 → last day of the month.
 
     Days up to and including today carry a real total (0 when nothing was
     spent); later days are `None` so the chart line stops at today while the
     axis still spans the whole month.
     """
-    now = now_utc()
+    now = month_reference(month)
     start = month_start(now)
     nxt = add_months(now, 1)
 
@@ -165,9 +169,9 @@ async def get_daily_series(db: AsyncSession, user: User) -> DailySeries:
     )
 
 
-async def get_insights(db: AsyncSession, user: User) -> Insights:
+async def get_insights(db: AsyncSession, user: User, month: str | None = None) -> Insights:
     """Plain-English highlights: this vs last month, top mover, biggest expense."""
-    now = now_utc()
+    now = month_reference(month)
     this_start = month_start(now)
     next_start = add_months(this_start, 1)
     last_start = add_months(this_start, -1)

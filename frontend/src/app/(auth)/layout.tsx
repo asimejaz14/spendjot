@@ -29,9 +29,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {/* Brand panel (desktop) — living gradient with drifting aurora orbs. */}
       <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-brand-mesh bg-[length:200%_200%] p-12 text-white animate-gradient-pan lg:flex">
         <div className="aurora-field">
-          <span className="aurora-blob left-[-10%] top-[8%] h-72 w-72 animate-float" style={{ background: "#A78BFA" }} />
-          <span className="aurora-blob right-[-8%] top-[30%] h-64 w-64 animate-float-slow" style={{ background: "#4F46E5" }} />
-          <span className="aurora-blob bottom-[-6%] left-[25%] h-72 w-72 animate-float" style={{ background: "#C4B5FD", animationDelay: "1.5s" }} />
+          <span className="aurora-blob left-[-10%] top-[8%] h-72 w-72 animate-float" style={{ background: "#3E8A6E" }} />
+          <span className="aurora-blob right-[-8%] top-[30%] h-64 w-64 animate-float-slow" style={{ background: "#0A2219" }} />
+          <span className="aurora-blob bottom-[-6%] left-[25%] h-72 w-72 animate-float" style={{ background: "#2A6B54", animationDelay: "1.5s" }} />
         </div>
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_30%_20%,rgba(255,255,255,0.22),transparent_60%)]" />
 
@@ -93,8 +93,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {/* Form area */}
       <div className="bg-aurora relative flex w-full flex-col justify-center overflow-hidden px-6 py-10 lg:w-1/2">
         <div className="aurora-field lg:hidden">
-          <span className="aurora-blob left-[-20%] top-[-10%] h-64 w-64 animate-float" style={{ background: "rgba(167,139,250,0.5)" }} />
-          <span className="aurora-blob bottom-[-10%] right-[-15%] h-56 w-56 animate-float-slow" style={{ background: "rgba(79,70,229,0.4)" }} />
+          <span className="aurora-blob left-[-20%] top-[-10%] h-64 w-64 animate-float" style={{ background: "hsl(var(--foreground) / 0.12)" }} />
+          <span className="aurora-blob bottom-[-10%] right-[-15%] h-56 w-56 animate-float-slow" style={{ background: "hsl(var(--foreground) / 0.08)" }} />
         </div>
         <div className="relative mx-auto w-full max-w-md">
           <div className="mb-8 flex justify-center lg:hidden">

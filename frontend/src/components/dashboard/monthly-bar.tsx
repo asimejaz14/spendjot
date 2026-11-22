@@ -43,13 +43,13 @@ export function MonthlyBar({ data }: { data: MonthlyPoint[] }) {
           <defs>
             {/* Peak month — full brand gradient */}
             <linearGradient id="barGradMax" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#8B5CF6" />
-              <stop offset="100%" stopColor="#4F46E5" />
+              <stop offset="0%" style={{ stopColor: "hsl(var(--chart-2))" }} />
+              <stop offset="100%" style={{ stopColor: "hsl(var(--chart-1))" }} />
             </linearGradient>
-            {/* Other months — softer lilac gradient */}
+            {/* Other months — softer green gradient */}
             <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#C4B5FD" />
-              <stop offset="100%" stopColor="#A78BFA" />
+              <stop offset="0%" style={{ stopColor: "hsl(var(--chart-6))" }} />
+              <stop offset="100%" style={{ stopColor: "hsl(var(--chart-5))" }} />
             </linearGradient>
           </defs>
           <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeDasharray="3 3" />

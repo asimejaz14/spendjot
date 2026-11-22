@@ -10,6 +10,7 @@ import {
   SlidersHorizontal,
   X,
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { MonthlyBar } from "@/components/dashboard/monthly-bar";
@@ -24,6 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -152,11 +154,21 @@ export default function HistoryPage() {
           <CardTitle className="flex items-center gap-2 text-base">
             <SlidersHorizontal className="h-4 w-4" /> Filters
           </CardTitle>
-          {hasFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              <X className="h-4 w-4" /> Clear
-            </Button>
-          )}
+          {/* Clear pops in only while a filter is active. */}
+          <AnimatePresence initial={false}>
+            {hasFilters && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.85, x: 8 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.85, x: 8 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              >
+                <Button variant="ghost" size="sm" onClick={clearFilters}>
+                  <X className="h-4 w-4" /> Clear
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="relative">
@@ -171,22 +183,24 @@ export default function HistoryPage() {
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="space-y-1.5">
               <Label htmlFor="from">From</Label>
-              <Input
+              <DatePicker
                 id="from"
-                type="date"
                 value={startDate}
                 max={endDate || undefined}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={setStartDate}
+                placeholder="Any date"
+                clearable
               />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="to">To</Label>
-              <Input
+              <DatePicker
                 id="to"
-                type="date"
                 value={endDate}
                 min={startDate || undefined}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={setEndDate}
+                placeholder="Any date"
+                clearable
               />
             </div>
             <div className="space-y-1.5">
@@ -252,7 +266,7 @@ export default function HistoryPage() {
             </p>
           ) : data && data.items.length > 0 ? (
             <>
-              <ExpenseList expenses={data.items} />
+              <ExpenseList key={JSON.stringify(params)} expenses={data.items} />
               {totalPages > 1 && (
                 <nav
                   aria-label="Pagination"
@@ -281,14 +295,21 @@ export default function HistoryPage() {
                     ) : (
                       <Button
                         key={item}
-                        variant={item === page ? "brand" : "outline"}
+                        variant="outline"
                         size="icon"
-                        className="tnum h-9 w-9"
+                        className={`tnum relative h-9 w-9 ${item === page ? "border-transparent text-white hover-on:bg-transparent hover-on:text-white" : ""}`}
                         aria-label={`Page ${item}`}
                         aria-current={item === page ? "page" : undefined}
                         onClick={() => setPage(item)}
                       >
-                        {item}
+                        {item === page && (
+                          <motion.span
+                            layoutId="active-page"
+                            className="absolute inset-0 rounded-[inherit] bg-brand shadow-glow"
+                            transition={{ type: "spring", stiffness: 480, damping: 34 }}
+                          />
+                        )}
+                        <span className="relative">{item}</span>
                       </Button>
                     ),
                   )}

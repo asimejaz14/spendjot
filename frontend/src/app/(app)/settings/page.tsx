@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Monitor, Moon, Sun } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -139,23 +140,43 @@ function AppearanceCard() {
           {THEMES.map(({ value, label, icon: Icon }) => {
             const active = current === value;
             return (
-              <button
+              <motion.button
                 key={value}
+                type="button"
                 onClick={() => choose(value)}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: "spring", stiffness: 500, damping: 28 }}
                 className={cn(
-                  "relative flex flex-col items-center gap-2 rounded-xl border p-4 text-sm font-medium transition-all",
-                  active
-                    ? "border-primary bg-secondary text-secondary-foreground shadow-soft"
-                    : "border-border hover:bg-accent",
+                  "relative flex flex-col items-center gap-2 rounded-xl border p-4 text-sm font-medium transition-colors",
+                  active ? "border-primary text-secondary-foreground" : "border-border hover:bg-accent",
                 )}
                 aria-pressed={active}
               >
+                {/* Highlight glides between options (shared layoutId). */}
                 {active && (
-                  <Check className="absolute right-2 top-2 h-4 w-4 text-primary" />
+                  <motion.span
+                    layoutId="theme-choice"
+                    className="absolute inset-0 rounded-[inherit] bg-secondary shadow-soft"
+                    transition={{ type: "spring", stiffness: 450, damping: 34 }}
+                  />
                 )}
-                <Icon className="h-6 w-6" />
-                {label}
-              </button>
+                <AnimatePresence>
+                  {active && (
+                    <motion.span
+                      className="absolute right-2 top-2"
+                      initial={{ scale: 0, rotate: -45 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 600, damping: 20 }}
+                    >
+                      <Check className="h-4 w-4 text-primary" />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+                <Icon className="relative h-6 w-6" />
+                <span className="relative">{label}</span>
+              </motion.button>
             );
           })}
         </div>

@@ -6,7 +6,7 @@ date filtering correct and identical across Postgres and SQLite.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 
 def now_utc() -> datetime:
@@ -40,3 +40,23 @@ MONTH_ABBR = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ]
+
+
+def month_reference(month: str | None) -> datetime:
+    """The "as of" instant for a month-scoped view.
+
+    `month` is "YYYY-MM". None, the current month, or any future month resolve
+    to *now*, so current-month views keep their "so far" semantics. A past
+    month resolves to its last second, so "days elapsed" covers the full month
+    and nothing is treated as still to come.
+    """
+    now = now_utc()
+    if not month:
+        return now
+    year, mon = (int(p) for p in month.split("-"))
+    if not 1 <= mon <= 12:
+        raise ValueError("month must be YYYY-MM")
+    start = now.replace(year=year, month=mon, day=1, hour=0, minute=0, second=0, microsecond=0)
+    if start >= month_start(now):
+        return now
+    return add_months(start, 1) - timedelta(seconds=1)

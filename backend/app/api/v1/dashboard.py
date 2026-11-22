@@ -8,15 +8,22 @@ from app.services import dashboard_service
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
+# Optional "YYYY-MM" month selector; omitted = the current month.
+MonthParam = Query(default=None, pattern=r"^\d{4}-(0[1-9]|1[0-2])$")
+
 
 @router.get("/summary", response_model=DashboardSummary)
-async def summary(db: DbSession, current_user: CurrentUser) -> DashboardSummary:
-    return await dashboard_service.get_summary(db, current_user)
+async def summary(
+    db: DbSession, current_user: CurrentUser, month: str | None = MonthParam
+) -> DashboardSummary:
+    return await dashboard_service.get_summary(db, current_user, month=month)
 
 
 @router.get("/insights", response_model=Insights)
-async def insights(db: DbSession, current_user: CurrentUser) -> Insights:
-    return await dashboard_service.get_insights(db, current_user)
+async def insights(
+    db: DbSession, current_user: CurrentUser, month: str | None = MonthParam
+) -> Insights:
+    return await dashboard_service.get_insights(db, current_user, month=month)
 
 
 @router.get("/monthly", response_model=MonthlySeries)
@@ -29,6 +36,8 @@ async def monthly(
 
 
 @router.get("/daily", response_model=DailySeries)
-async def daily(db: DbSession, current_user: CurrentUser) -> DailySeries:
-    """Per-day spending for the current month (for the dashboard line chart)."""
-    return await dashboard_service.get_daily_series(db, current_user)
+async def daily(
+    db: DbSession, current_user: CurrentUser, month: str | None = MonthParam
+) -> DailySeries:
+    """Per-day spending for a month (default: current) for the dashboard line chart."""
+    return await dashboard_service.get_daily_series(db, current_user, month=month)

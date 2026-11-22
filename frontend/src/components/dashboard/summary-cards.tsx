@@ -8,7 +8,14 @@ import { HoverLift, StaggerItem, StaggerList } from "@/components/feedback/motio
 import { formatCurrency } from "@/lib/format";
 import type { DashboardSummary } from "@/lib/types";
 
-export function SummaryCards({ summary }: { summary: DashboardSummary }) {
+export function SummaryCards({
+  summary,
+  isCurrent = true,
+}: {
+  summary: DashboardSummary;
+  isCurrent?: boolean;
+}) {
+  const period = isCurrent ? "this month" : "that month";
   return (
     <StaggerList className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
       {/* Hero — the living, gradient-panning headline figure. */}
@@ -19,7 +26,9 @@ export function SummaryCards({ summary }: { summary: DashboardSummary }) {
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_20%_0%,rgba(255,255,255,0.28),transparent_60%)]" />
             <Sparkles className="pointer-events-none absolute right-4 top-4 h-5 w-5 text-white/70 animate-float" />
             <Sparkles className="pointer-events-none absolute bottom-6 right-10 h-3 w-3 text-white/50 animate-float-slow" />
-            <p className="relative text-sm font-medium text-white/85">Spent this month</p>
+            <p className="relative text-sm font-medium text-white/85">
+              {isCurrent ? "Spent this month" : "Spent"}
+            </p>
             <div className="relative">
               <AnimatedNumber
                 value={Number(summary.month_total)}
@@ -37,7 +46,7 @@ export function SummaryCards({ summary }: { summary: DashboardSummary }) {
           icon={<Receipt className="h-5 w-5" />}
           label="Expenses"
           value={summary.expense_count}
-          hint="this month"
+          hint={period}
         />
       </StaggerItem>
 

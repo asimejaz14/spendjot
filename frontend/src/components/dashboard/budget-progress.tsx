@@ -37,8 +37,10 @@ function Bar({ pct, delay = 0 }: { pct: number; delay?: number }) {
   );
 }
 
-export function BudgetProgressCard() {
-  const { data, isLoading } = useBudgetProgress();
+export function BudgetProgressCard({ month }: { month?: string }) {
+  const { data, isLoading } = useBudgetProgress(month);
+  // Past months are closed: show the result, not pacing / projections.
+  const isCurrent = !month;
 
   if (isLoading) {
     return <Skeleton className="h-56 rounded-2xl" />;
@@ -62,7 +64,9 @@ export function BudgetProgressCard() {
           <p className="text-sm text-muted-foreground">
             Set a monthly budget to track your spending and see what&apos;s safe to spend.
           </p>
-          <Button asChild variant="brand" size="sm">
+          {/* shrink-0: the brand variant is overflow-hidden, so a squeezed
+              button would clip its own label beside the paragraph. */}
+          <Button asChild variant="brand" size="sm" className="shrink-0 whitespace-nowrap">
             <Link href="/settings">Set a budget</Link>
           </Button>
         </CardContent>
@@ -95,10 +99,10 @@ export function BudgetProgressCard() {
                   className="tnum block text-2xl font-bold tracking-tight"
                 />
                 <p className="text-xs text-muted-foreground">
-                  of {formatCurrency(budget)} this month
+                  of {formatCurrency(budget)} {isCurrent ? "this month" : "budget"}
                 </p>
               </div>
-              {overall.on_track !== null && (
+              {isCurrent && overall.on_track !== null && (
                 <span
                   className={cn(
                     "rounded-full px-2.5 py-1 text-xs font-semibold",
@@ -120,7 +124,7 @@ export function BudgetProgressCard() {
                   ? `${formatCurrency(Math.abs(remaining))} over budget`
                   : `${formatCurrency(remaining)} left`}
               </span>
-              {overall.safe_per_day && !over && (
+              {isCurrent && overall.safe_per_day && !over && (
                 <span className="tnum text-muted-foreground">
                   Safe to spend:{" "}
                   <span className="font-semibold text-foreground">
@@ -131,6 +135,7 @@ export function BudgetProgressCard() {
               )}
             </div>
 
+            {isCurrent && (
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <TrendingUp className="h-3.5 w-3.5" />
               At this rate you&apos;ll spend about{" "}
@@ -139,6 +144,7 @@ export function BudgetProgressCard() {
               </span>{" "}
               by month end
             </p>
+            )}
           </div>
         )}
 

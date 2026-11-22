@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { LogOut, Settings as SettingsIcon, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -31,11 +32,17 @@ export function UserMenu({ align = "end" }: { align?: "start" | "end" }) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        aria-label="Account menu"
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-sm font-semibold text-white shadow-soft outline-none ring-offset-background transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-      >
-        {initials(user.display_name, user.email)}
+      <DropdownMenuTrigger asChild>
+        <motion.button
+          type="button"
+          aria-label="Account menu"
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.92 }}
+          transition={{ type: "spring", stiffness: 500, damping: 24 }}
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-sm font-semibold text-white shadow-soft outline-none ring-offset-background transition-shadow focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=open]:ring-2 data-[state=open]:ring-ring/40"
+        >
+          {initials(user.display_name, user.email)}
+        </motion.button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align={align} className="w-60">
         <DropdownMenuLabel>

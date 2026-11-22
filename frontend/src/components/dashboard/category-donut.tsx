@@ -9,20 +9,17 @@ import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { CategoryBreakdown } from "@/lib/types";
 
-export const CHART_COLORS = [
-  "#7C3AED",
-  "#6D5DEF",
-  "#4F46E5",
-  "#A78BFA",
-  "#8B5CF6",
-  "#C4B5FD",
-];
+// Monochrome ramp, token-driven so it inverts for dark mode (see globals.css).
+export const CHART_COLORS = [1, 2, 3, 4, 5, 6].map((n) => `hsl(var(--chart-${n}))`);
+// Icon colour on each swatch: the first four are the "dark" end of the ramp.
+const onColor = (i: number) =>
+  i % CHART_COLORS.length < 4 ? "hsl(var(--chart-on-dark))" : "hsl(var(--chart-on-light))";
 
 // The hovered slice grows slightly and casts a soft shadow.
 function ActiveSlice(props: any) {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
   return (
-    <g style={{ filter: `drop-shadow(0 6px 14px ${fill}66)` }}>
+    <g style={{ filter: "drop-shadow(0 6px 14px hsl(var(--shadow-color) / 0.35))" }}>
       <Sector
         cx={cx}
         cy={cy}
@@ -108,8 +105,8 @@ export function CategoryDonut({ data }: { data: CategoryBreakdown[] }) {
               )}
             >
               <span
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white transition-transform group-hover:scale-110"
-                style={{ backgroundColor: color }}
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-110"
+                style={{ backgroundColor: color, color: onColor(i) }}
               >
                 <CategoryIcon icon={c.icon} className="h-4 w-4" />
               </span>

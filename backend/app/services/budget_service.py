@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import AppError
-from app.core.timeutils import MONTH_NAMES, add_months, month_start, now_utc
+from app.core.timeutils import MONTH_NAMES, add_months, month_reference, month_start
 from app.models.budget import Budget
 from app.models.category import Category
 from app.models.expense import Expense
@@ -69,8 +69,10 @@ async def delete_budget(db: AsyncSession, user: User, category_id: int | None) -
         await db.commit()
 
 
-async def get_progress(db: AsyncSession, user: User) -> BudgetProgress:
-    now = now_utc()
+async def get_progress(
+    db: AsyncSession, user: User, month: str | None = None
+) -> BudgetProgress:
+    now = month_reference(month)
     start = month_start(now)
     nxt = add_months(now, 1)
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -53,11 +54,17 @@ export function ExpenseRow({ expense }: { expense: Expense }) {
       </div>
 
       <DropdownMenu>
-        <DropdownMenuTrigger
-          aria-label="Expense options"
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground outline-none transition hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <MoreVertical className="h-4 w-4" />
+        <DropdownMenuTrigger asChild>
+          <motion.button
+            type="button"
+            aria-label="Expense options"
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.88 }}
+            transition={{ type: "spring", stiffness: 600, damping: 26 }}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring data-[state=open]:bg-accent data-[state=open]:text-foreground"
+          >
+            <MoreVertical className="h-4 w-4" />
+          </motion.button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem onClick={() => setEditOpen(true)}>

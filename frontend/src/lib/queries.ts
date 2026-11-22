@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  keepPreviousData,
   useMutation,
   useQuery,
   useQueryClient,
@@ -32,14 +33,14 @@ export interface ExpenseQueryParams {
 
 export const queryKeys = {
   categories: ["categories"] as const,
-  summary: ["dashboard", "summary"] as const,
+  summary: (month?: string) => ["dashboard", "summary", month ?? "current"] as const,
   monthly: (months: number) => ["dashboard", "monthly", months] as const,
-  daily: ["dashboard", "daily"] as const,
+  daily: (month?: string) => ["dashboard", "daily", month ?? "current"] as const,
   apiTokens: ["api-tokens"] as const,
   expenses: (params: ExpenseQueryParams) => ["expenses", params] as const,
   budgets: ["budgets"] as const,
-  budgetProgress: ["budgets", "progress"] as const,
-  insights: ["dashboard", "insights"] as const,
+  budgetProgress: (month?: string) => ["budgets", "progress", month ?? "current"] as const,
+  insights: (month?: string) => ["dashboard", "insights", month ?? "current"] as const,
 };
 
 export function useCategories() {
@@ -50,18 +51,26 @@ export function useCategories() {
   });
 }
 
-export function useDashboardSummary() {
+/** `month` is "YYYY-MM"; omit for the current month. */
+const monthParams = (month?: string) => (month ? { month } : {});
+
+export function useDashboardSummary(month?: string) {
   return useQuery({
-    queryKey: queryKeys.summary,
+    queryKey: queryKeys.summary(month),
     queryFn: async () =>
-      (await api.get<DashboardSummary>("/dashboard/summary")).data,
+      (await api.get<DashboardSummary>("/dashboard/summary", { params: monthParams(month) }))
+        .data,
+    // Keep the previous month on screen while the next one loads.
+    placeholderData: keepPreviousData,
   });
 }
 
-export function useInsights() {
+export function useInsights(month?: string) {
   return useQuery({
-    queryKey: queryKeys.insights,
-    queryFn: async () => (await api.get<Insights>("/dashboard/insights")).data,
+    queryKey: queryKeys.insights(month),
+    queryFn: async () =>
+      (await api.get<Insights>("/dashboard/insights", { params: monthParams(month) })).data,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -74,10 +83,12 @@ export function useMonthlySeries(months = 6) {
   });
 }
 
-export function useDailySeries() {
+export function useDailySeries(month?: string) {
   return useQuery({
-    queryKey: queryKeys.daily,
-    queryFn: async () => (await api.get<DailySeries>("/dashboard/daily")).data,
+    queryKey: queryKeys.daily(month),
+    queryFn: async () =>
+      (await api.get<DailySeries>("/dashboard/daily", { params: monthParams(month) })).data,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -201,11 +212,12 @@ export function useBudgets() {
   });
 }
 
-export function useBudgetProgress() {
+export function useBudgetProgress(month?: string) {
   return useQuery({
-    queryKey: queryKeys.budgetProgress,
+    queryKey: queryKeys.budgetProgress(month),
     queryFn: async () =>
-      (await api.get<BudgetProgress>("/budgets/progress")).data,
+      (await api.get<BudgetProgress>("/budgets/progress", { params: monthParams(month) })).data,
+    placeholderData: keepPreviousData,
   });
 }
 

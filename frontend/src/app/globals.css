@@ -6,64 +6,103 @@
   :root {
     --radius: 1rem;
 
-    /* Light theme — brand-derived */
-    --background: 250 100% 99%;
-    --foreground: 255 26% 10%;
+    /* Light theme — neutral text & surfaces; Forest #153D30 for brand accents */
+    --background: 0 0% 98.5%;
+    --foreground: 240 6% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 255 26% 10%;
+    --card-foreground: 240 6% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 255 26% 10%;
+    --popover-foreground: 240 6% 10%;
 
-    --primary: 262 83% 58%; /* Jot Violet #7C3AED */
+    --primary: 161 49% 16%; /* Forest #153D30 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 251 91% 95%; /* Lavender */
-    --secondary-foreground: 262 60% 40%;
+    --secondary: 240 5% 94%;
+    --secondary-foreground: 240 5% 20%;
 
-    --muted: 252 60% 97%; /* Mist */
-    --muted-foreground: 252 8% 46%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 44%;
 
-    --accent: 251 91% 95%;
-    --accent-foreground: 262 60% 38%;
+    --accent: 240 5% 93%;
+    --accent-foreground: 240 6% 12%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 252 40% 91%; /* Line */
-    --input: 252 40% 90%;
-    --ring: 262 83% 58%;
+    --border: 240 5% 90%;
+    --input: 240 5% 87%;
+    --ring: 161 49% 22%;
+
+    /* Brand surface gradient (buttons, hero card, logo) — built on #153D30. */
+    --brand-1: 161 42% 27%;
+    --brand-2: 161 49% 16%;
+    --brand-3: 161 55% 9%;
+    /* Gradient text (headings / key figures) — stays neutral charcoal. */
+    --text-grad-1: 240 4% 34%;
+    --text-grad-2: 240 6% 8%;
+    /* Shadows are pure black; strength scales them per theme. */
+    --shadow-color: 0 0% 0%;
+    --shadow-strength: 1;
+
+    /* Forest chart ramp + icon colour that sits on each swatch. */
+    --chart-1: 161 49% 16%;
+    --chart-2: 161 40% 27%;
+    --chart-3: 161 32% 38%;
+    --chart-4: 161 26% 50%;
+    --chart-5: 160 24% 63%;
+    --chart-6: 158 24% 76%;
+    --chart-on-dark: 0 0% 100%;
+    --chart-on-light: 161 49% 12%;
   }
 
   .dark {
-    --background: 255 26% 7%; /* Ink, deepened */
-    --foreground: 250 40% 96%;
+    --background: 240 6% 5%; /* Charcoal black */
+    --foreground: 0 0% 96%;
 
-    --card: 255 22% 11%;
-    --card-foreground: 250 40% 96%;
+    --card: 240 5% 9%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 255 22% 11%;
-    --popover-foreground: 250 40% 96%;
+    --popover: 240 5% 10%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 255 92% 76%; /* Soft Lilac — brighter on dark */
-    --primary-foreground: 255 30% 12%;
+    --primary: 0 0% 94%; /* Off-white text accents on dark */
+    --primary-foreground: 240 6% 8%;
 
-    --secondary: 255 20% 18%;
-    --secondary-foreground: 250 40% 92%;
+    --secondary: 240 4% 15%;
+    --secondary-foreground: 0 0% 92%;
 
-    --muted: 255 18% 16%;
-    --muted-foreground: 252 12% 66%;
+    --muted: 240 4% 13%;
+    --muted-foreground: 240 5% 64%;
 
-    --accent: 255 20% 20%;
-    --accent-foreground: 250 40% 94%;
+    --accent: 240 4% 17%;
+    --accent-foreground: 0 0% 96%;
 
     --destructive: 0 62% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 255 16% 22%;
-    --input: 255 16% 24%;
-    --ring: 255 92% 76%;
+    --border: 240 4% 18%;
+    --input: 240 4% 21%;
+    --ring: 0 0% 82%;
+
+    /* #153D30 lifted so brand surfaces still read against the charcoal page. */
+    --brand-1: 161 40% 30%;
+    --brand-2: 161 49% 20%;
+    --brand-3: 161 49% 13%;
+    --text-grad-1: 0 0% 100%;
+    --text-grad-2: 240 5% 66%;
+    --shadow-color: 0 0% 0%;
+    --shadow-strength: 2.2;
+
+    --chart-1: 156 45% 72%;
+    --chart-2: 158 38% 58%;
+    --chart-3: 160 34% 45%;
+    --chart-4: 161 38% 34%;
+    --chart-5: 161 44% 25%;
+    --chart-6: 161 49% 18%;
+    --chart-on-dark: 161 55% 9%;
+    --chart-on-light: 0 0% 100%;
   }
 }
 
@@ -89,6 +128,35 @@
     outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
   }
+  /*
+   * Cursor contract: anything you can click shows a pointer; anything disabled
+   * shows not-allowed. Preflight only covers <button>, so this extends it to
+   * links, ARIA widgets (menu items, options, tabs) and picker-style inputs.
+   */
+  a[href],
+  summary,
+  select,
+  [role="button"],
+  [role="menuitem"],
+  [role="option"],
+  [role="tab"],
+  [role="switch"],
+  [role="checkbox"],
+  [role="radio"],
+  [role="combobox"],
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="time"],
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+  }
+  :disabled,
+  [aria-disabled="true"],
+  [data-disabled] {
+    cursor: not-allowed;
+  }
   /* Tabular numbers for money everywhere it matters */
   .tnum {
     font-variant-numeric: tabular-nums;
@@ -98,13 +166,13 @@
 @layer utilities {
   /* Brand gradient clipped to text — headings, key figures. */
   .text-gradient {
-    background: linear-gradient(120deg, #8b5cf6, #6d5def 45%, #4f46e5);
+    background: linear-gradient(120deg, hsl(var(--text-grad-1)), hsl(var(--text-grad-2)));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     -webkit-text-fill-color: transparent;
   }
-  /* On the violet brand surface, a soft white gradient for headings. */
+  /* On the forest brand surface, a soft white gradient for headings. */
   .text-gradient-light {
     background: linear-gradient(120deg, #ffffff, rgba(255, 255, 255, 0.72));
     -webkit-background-clip: text;
@@ -127,9 +195,9 @@
 /* Subtle ambient gradient used behind auth screens */
 .bg-aurora {
   background:
-    radial-gradient(60% 50% at 20% 10%, rgba(139, 92, 246, 0.18), transparent 60%),
-    radial-gradient(50% 50% at 90% 20%, rgba(79, 70, 229, 0.16), transparent 60%),
-    radial-gradient(60% 60% at 50% 100%, rgba(167, 139, 250, 0.14), transparent 60%);
+    radial-gradient(60% 50% at 20% 10%, hsl(var(--foreground) / 0.07), transparent 60%),
+    radial-gradient(50% 50% at 90% 20%, hsl(var(--foreground) / 0.05), transparent 60%),
+    radial-gradient(60% 60% at 50% 100%, hsl(var(--foreground) / 0.04), transparent 60%);
 }
 
 /* Slowly drifting aurora blobs — layered behind auth / hero surfaces.

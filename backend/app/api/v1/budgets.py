@@ -16,8 +16,12 @@ async def list_budgets(db: DbSession, current_user: CurrentUser) -> list[BudgetO
 
 
 @router.get("/progress", response_model=BudgetProgress)
-async def budget_progress(db: DbSession, current_user: CurrentUser) -> BudgetProgress:
-    return await budget_service.get_progress(db, current_user)
+async def budget_progress(
+    db: DbSession,
+    current_user: CurrentUser,
+    month: str | None = Query(default=None, pattern=r"^\d{4}-(0[1-9]|1[0-2])$"),
+) -> BudgetProgress:
+    return await budget_service.get_progress(db, current_user, month=month)
 
 
 @router.put("", response_model=BudgetOut)

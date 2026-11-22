@@ -19,9 +19,9 @@ export function LogoIcon({ className }: { className?: string }) {
     >
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#8B5CF6" />
-          <stop offset="0.5" stopColor="#6D5DEF" />
-          <stop offset="1" stopColor="#4F46E5" />
+          <stop offset="0" style={{ stopColor: "hsl(var(--brand-1))" }} />
+          <stop offset="0.5" style={{ stopColor: "hsl(var(--brand-2))" }} />
+          <stop offset="1" style={{ stopColor: "hsl(var(--brand-3))" }} />
         </linearGradient>
       </defs>
       <rect x="3" y="3" width="80" height="80" rx="22" fill={`url(#${gradId})`} />
