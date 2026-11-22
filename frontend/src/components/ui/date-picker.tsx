@@ -50,6 +50,9 @@ interface DatePickerProps {
   /** Show an inline ✕ that resets the value to "". */
   clearable?: boolean;
   className?: string;
+  /** Extra classes for the field itself (e.g. a shorter height in dense grids). */
+  triggerClassName?: string;
+  "aria-invalid"?: boolean;
   "aria-label"?: string;
 }
 
@@ -67,6 +70,8 @@ export function DatePicker({
   placeholder = "Pick a date",
   clearable = false,
   className,
+  triggerClassName,
+  "aria-invalid": ariaInvalid,
   "aria-label": ariaLabel,
 }: DatePickerProps) {
   const selected = toDate(value);
@@ -114,11 +119,14 @@ export function DatePicker({
             id={id}
             type="button"
             aria-label={ariaLabel}
+            aria-invalid={ariaInvalid || undefined}
             className={cn(
               "group flex h-11 w-full cursor-pointer items-center gap-2.5 rounded-lg border border-input bg-background px-3.5 text-left text-sm shadow-sm",
               "transition-[border-color,box-shadow] duration-200 hover:border-foreground/25 data-[state=open]:border-foreground/30",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+              "aria-[invalid=true]:border-destructive",
               clearable && selected && "pr-10",
+              triggerClassName,
             )}
           >
             <motion.span

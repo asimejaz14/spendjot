@@ -17,7 +17,17 @@ export async function downloadExpensesExport(
   const match = disposition && /filename="?([^"]+)"?/.exec(disposition);
   const filename = match ? match[1] : `spendjot-expenses.${format}`;
 
-  const url = URL.createObjectURL(res.data as Blob);
+  saveBlob(res.data as Blob, filename);
+}
+
+/** Download the blank bulk-import .xlsx template. */
+export async function downloadImportTemplate(): Promise<void> {
+  const res = await api.get("/expenses/import/template", { responseType: "blob" });
+  saveBlob(res.data as Blob, "spendjot-import-template.xlsx");
+}
+
+function saveBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;

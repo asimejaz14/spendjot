@@ -163,3 +163,24 @@ export interface BudgetProgress {
 export interface ApiErrorShape {
   error: { code: string; message: string };
 }
+
+/** A draft row read from a spreadsheet / pasted cells — reviewed before saving. */
+export interface ImportRow {
+  name: string;
+  amount: string | null;
+  category_id: number | null;
+  spent_at: string | null; // naive local "yyyy-MM-ddTHH:mm"
+  description: string | null;
+  warnings: string[];
+}
+
+export interface ImportPreview {
+  rows: ImportRow[];
+  skipped: number;
+  truncated: boolean;
+}
+
+export interface BulkCreateResult {
+  created: number;
+  total_amount: string;
+}

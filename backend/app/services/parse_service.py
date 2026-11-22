@@ -82,9 +82,23 @@ def _parse_date(text: str):
     return now, None
 
 
+def guess_category(text: str, by_slug: dict[str, Category]) -> Category | None:
+    """Best keyword match for `text`, or None when no keyword hits."""
+    low = text.lower()
+    scores: dict[str, int] = {}
+    for slug, keywords in _CATEGORY_KEYWORDS.items():
+        if slug not in by_slug:
+            continue
+        hits = sum(1 for kw in keywords if re.search(rf"\b{re.escape(kw)}\b", low))
+        if hits:
+            scores[slug] = hits
+    if not scores:
+        return None
+    return by_slug[max(scores, key=lambda s: scores[s])]
+
+
 async def parse_expense(db: AsyncSession, text: str) -> ParsedExpense:
     raw = text.strip()
-    low = raw.lower()
 
     amount, amount_phrase = _parse_amount(raw)
     spent_at, date_phrase = _parse_date(raw)
@@ -93,20 +107,7 @@ async def parse_expense(db: AsyncSession, text: str) -> ParsedExpense:
         (await db.scalars(select(Category).where(Category.is_active.is_(True)))).all()
     )
     by_slug = {c.slug: c for c in categories}
-
-    scores: dict[str, int] = {}
-    for slug, keywords in _CATEGORY_KEYWORDS.items():
-        if slug not in by_slug:
-            continue
-        hits = sum(1 for kw in keywords if re.search(rf"\b{re.escape(kw)}\b", low))
-        if hits:
-            scores[slug] = hits
-
-    category = None
-    if scores:
-        category = by_slug[max(scores, key=lambda s: scores[s])]
-    elif "misc" in by_slug:
-        category = by_slug["misc"]
+    category = guess_category(raw, by_slug) or by_slug.get("misc")
 
     # Name = the text minus the amount and date phrases.
     name = raw

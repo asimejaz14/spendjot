@@ -3,19 +3,23 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Query, Response, status
+from fastapi import APIRouter, File, Query, Response, UploadFile, status
 
 from app.api.deps import CurrentUser, DbSession
 from app.core.timeutils import as_utc, now_utc
 from app.schemas.expense import (
+    ExpenseBulkCreate,
+    ExpenseBulkOut,
     ExpenseCreate,
+    ImportPreviewOut,
+    ImportRowOut,
     ExpenseListOut,
     ExpenseOut,
     ExpenseUpdate,
     ParsedExpenseOut,
     ParseRequest,
 )
-from app.services import expense_service, export_service, parse_service
+from app.services import expense_service, export_service, import_service, parse_service
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
@@ -61,6 +65,51 @@ async def create_expense(
 ) -> ExpenseOut:
     expense = await expense_service.create_expense(db, current_user, payload)
     return ExpenseOut.model_validate(expense)
+
+
+@router.post("/bulk", response_model=ExpenseBulkOut, status_code=status.HTTP_201_CREATED)
+async def bulk_create_expenses(
+    payload: ExpenseBulkCreate, db: DbSession, current_user: CurrentUser
+) -> ExpenseBulkOut:
+    """Add up to 200 expenses in one go — all saved, or none if any row is invalid."""
+    created, total = await expense_service.bulk_create_expenses(db, current_user, payload.items)
+    return ExpenseBulkOut(created=created, total_amount=total)
+
+
+@router.post("/import/preview", response_model=ImportPreviewOut)
+async def import_preview(
+    db: DbSession,
+    current_user: CurrentUser,
+    file: UploadFile = File(..., description=".xlsx, .csv, or tab-separated text"),
+) -> ImportPreviewOut:
+    """Read a sheet into draft rows for review. Saves nothing."""
+    content = await file.read(import_service.MAX_BYTES + 1)
+    result = await import_service.parse_table(db, file.filename or "", content)
+    return ImportPreviewOut(
+        rows=[
+            ImportRowOut(
+                name=r.name,
+                amount=r.amount,
+                category_id=r.category_id,
+                spent_at=r.spent_at,
+                description=r.description,
+                warnings=r.warnings,
+            )
+            for r in result.rows
+        ],
+        skipped=result.skipped,
+        truncated=result.truncated,
+    )
+
+
+@router.get("/import/template")
+async def import_template(db: DbSession, current_user: CurrentUser) -> Response:
+    """Blank .xlsx with the expected columns and a category dropdown."""
+    return Response(
+        content=await import_service.build_template(db),
+        media_type=_EXPORT_MEDIA["xlsx"],
+        headers={"Content-Disposition": 'attachment; filename="spendjot-import-template.xlsx"'},
+    )
 
 
 @router.post("/parse", response_model=ParsedExpenseOut)

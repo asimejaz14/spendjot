@@ -42,7 +42,7 @@ const buttonVariants = cva(
 const LIFTING = new Set(["default", "brand", "destructive"]);
 const press = { type: "spring", stiffness: 520, damping: 28 } as const;
 
-const MotionSlot = motion(Slot);
+const MotionSlot = motion.create(Slot);
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,

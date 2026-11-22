@@ -9,6 +9,8 @@ import {
 import { api } from "./api";
 import type {
   ApiToken,
+  BulkCreateResult,
+  ImportPreview,
   ApiTokenCreated,
   Budget,
   BudgetProgress,
@@ -155,6 +157,33 @@ export function useCreateExpense() {
     mutationFn: async (payload: ExpensePayload) =>
       (await api.post("/expenses", payload)).data,
     onSuccess: invalidate,
+  });
+}
+
+/** Save many expenses at once (all or nothing, max 200). */
+export function useBulkCreateExpenses() {
+  const invalidate = useInvalidateExpenses();
+  return useMutation({
+    mutationFn: async (items: ExpensePayload[]) =>
+      (await api.post<BulkCreateResult>("/expenses/bulk", { items })).data,
+    onSuccess: invalidate,
+  });
+}
+
+/** Read an .xlsx/.csv file (or pasted cells as a .tsv blob) into draft rows. Saves nothing. */
+export function useImportPreview() {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const form = new FormData();
+      form.append("file", file);
+      // Override the client's JSON default, or axios serialises the FormData as
+      // JSON; the browser then fills in the multipart boundary itself.
+      return (
+        await api.post<ImportPreview>("/expenses/import/preview", form, {
+          headers: { "Content-Type": "multipart/form-data" },
+        })
+      ).data;
+    },
   });
 }
 

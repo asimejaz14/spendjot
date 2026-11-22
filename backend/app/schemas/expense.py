@@ -62,3 +62,32 @@ class ParsedExpenseOut(BaseModel):
     category_id: int | None
     category_name: str | None
     spent_at: datetime
+
+
+# ------------------------------------------------------------------ bulk add
+
+
+class ExpenseBulkCreate(BaseModel):
+    items: list[ExpenseCreate] = Field(min_length=1, max_length=200)
+
+
+class ExpenseBulkOut(BaseModel):
+    created: int
+    total_amount: Money
+
+
+class ImportRowOut(BaseModel):
+    """A draft row read from a sheet — reviewed in the UI, not saved."""
+
+    name: str
+    amount: Money | None
+    category_id: int | None
+    spent_at: str | None  # naive local "YYYY-MM-DDTHH:MM"
+    description: str | None
+    warnings: list[str]
+
+
+class ImportPreviewOut(BaseModel):
+    rows: list[ImportRowOut]
+    skipped: int
+    truncated: bool

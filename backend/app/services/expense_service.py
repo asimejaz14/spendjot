@@ -154,3 +154,40 @@ async def export_expenses(
     items = list((await db.scalars(stmt)).all())
     total_amount = sum((e.amount for e in items), Decimal(0))
     return items, total_amount
+
+
+async def bulk_create_expenses(
+    db: AsyncSession, user: User, items: list[ExpenseCreate]
+) -> tuple[int, Decimal]:
+    """Insert every item or none (one transaction; any bad row rejects the batch)."""
+    ids = {i.category_id for i in items}
+    valid = set(
+        (
+            await db.scalars(
+                select(Category.id).where(Category.id.in_(ids), Category.is_active.is_(True))
+            )
+        ).all()
+    )
+    bad = [n for n, i in enumerate(items, start=1) if i.category_id not in valid]
+    if bad:
+        rows = ", ".join(str(n) for n in bad[:5])
+        raise AppError(
+            f"Please choose a valid category (row {rows}).",
+            code="invalid_category",
+            status_code=400,
+        )
+
+    now = now_utc()
+    db.add_all(
+        Expense(
+            user_id=user.id,
+            category_id=i.category_id,
+            name=i.name.strip(),
+            amount=i.amount,
+            description=(i.description or None),
+            spent_at=as_utc(i.spent_at) if i.spent_at else now,
+        )
+        for i in items
+    )
+    await db.flush()
+    return len(items), sum((i.amount for i in items), Decimal(0))

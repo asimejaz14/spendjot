@@ -76,7 +76,7 @@ DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName;
 
 // `asChild` items (e.g. a <Link>) animate through a Motion-wrapped Slot so the
 // link itself stays the focusable, navigable element.
-const MotionSlot = motion(Slot);
+const MotionSlot = motion.create(Slot);
 
 const DropdownMenuItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Item>,
