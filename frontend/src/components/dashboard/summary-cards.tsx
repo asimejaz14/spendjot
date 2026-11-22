@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Receipt, Sparkles, TrendingUp } from "lucide-react";
+import { CalendarDays, Receipt, TrendingUp } from "lucide-react";
 import { CategoryIcon } from "@/components/categories/category-icon";
 import { Card } from "@/components/ui/card";
 import { AnimatedNumber } from "@/components/feedback/animated-number";
@@ -18,14 +18,12 @@ export function SummaryCards({
   const period = isCurrent ? "this month" : "that month";
   return (
     <StaggerList className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-      {/* Hero — the living, gradient-panning headline figure. */}
+      {/* Hero — the headline figure. */}
       <StaggerItem className="col-span-2 lg:col-span-1">
         <HoverLift className="h-full" lift={4}>
-          <div className="ring-sheen relative flex h-full flex-col justify-between overflow-hidden rounded-2xl bg-brand-mesh bg-[length:200%_200%] p-5 text-white shadow-glow animate-gradient-pan">
-            {/* soft top-light + floating sparkles */}
+          <div className="ring-sheen relative flex h-full flex-col justify-between overflow-hidden rounded-2xl bg-brand-mesh p-5 text-white shadow-glow">
+            {/* soft top-light */}
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_20%_0%,rgba(255,255,255,0.28),transparent_60%)]" />
-            <Sparkles className="pointer-events-none absolute right-4 top-4 h-5 w-5 text-white/70 animate-float" />
-            <Sparkles className="pointer-events-none absolute bottom-6 right-10 h-3 w-3 text-white/50 animate-float-slow" />
             <p className="relative text-sm font-medium text-white/85">
               {isCurrent ? "Spent this month" : "Spent"}
             </p>
