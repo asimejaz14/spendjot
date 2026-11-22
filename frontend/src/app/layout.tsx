@@ -26,10 +26,15 @@ const sora = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Spend Jot — jot expenses in seconds",
+  // Each route sets its own name → "Spend Jot - Dashboard", "Spend Jot - History"…
+  title: {
+    default: "Spend Jot — jot expenses in seconds",
+    template: "Spend Jot - %s",
+  },
   description:
     "A fast, friendly way to track your daily spending. Jot an expense, see where your money goes.",
-  icons: { icon: "/brand/spendjot-icon.svg" },
+  // ?v= busts browsers' aggressive favicon cache after the recolour.
+  icons: { icon: "/brand/spendjot-icon.svg?v=2" },
 };
 
 export const viewport: Viewport = {
