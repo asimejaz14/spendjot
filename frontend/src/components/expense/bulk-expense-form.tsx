@@ -3,7 +3,7 @@
 import { format } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, ClipboardPaste, FileDown, FileUp, Plus, Trash2 } from "lucide-react";
-import { useRef, useState } from "react";
+import { forwardRef, memo, useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CategoryIcon } from "@/components/categories/category-icon";
 import { Spinner } from "@/components/feedback/loaders";
@@ -21,7 +21,7 @@ import { getErrorMessage } from "@/lib/api";
 import { downloadImportTemplate } from "@/lib/export";
 import { formatCurrency } from "@/lib/format";
 import { useBulkCreateExpenses, useCategories, useImportPreview } from "@/lib/queries";
-import type { ImportRow } from "@/lib/types";
+import type { Category, ImportRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const MAX_ROWS = 200;
@@ -105,18 +105,24 @@ export function BulkExpenseForm({ onSuccess }: { onSuccess: () => void }) {
   const invalidCount = [...errorsByKey.values()].filter((e) => Object.keys(e).length).length;
   const total = filled.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
 
-  const update = (key: string, patch: Partial<Row>) =>
-    setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch, warnings: [] } : r)));
+  // Stable callbacks so memoised rows skip re-rendering while another row is typed in.
+  const update = useCallback(
+    (key: string, patch: Partial<Row>) =>
+      setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch, warnings: [] } : r))),
+    [],
+  );
 
-  const addRow = () => {
-    if (rows.length >= MAX_ROWS) return;
+  const addRow = useCallback(() => {
     const row = blankRow();
-    setRows((rs) => [...rs, row]);
+    setRows((rs) => (rs.length >= MAX_ROWS ? rs : [...rs, row]));
     setFocusKey(row.key);
-  };
+  }, []);
 
-  const removeRow = (key: string) =>
-    setRows((rs) => (rs.length > 1 ? rs.filter((r) => r.key !== key) : [blankRow()]));
+  const removeRow = useCallback(
+    (key: string) =>
+      setRows((rs) => (rs.length > 1 ? rs.filter((r) => r.key !== key) : [blankRow()])),
+    [],
+  );
 
   /** Keep what the user already typed, then append the imported rows. */
   const merge = (incoming: Row[]) => {
@@ -241,112 +247,20 @@ export function BulkExpenseForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="space-y-2">
         <AnimatePresence initial={false} mode="popLayout">
-          {rows.map((r, idx) => {
-            const errs = submitted ? (errorsByKey.get(r.key) ?? {}) : {};
-            return (
-              <motion.div
-                key={r.key}
-                layout
-                initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, x: 24, scale: 0.96, transition: { duration: 0.16 } }}
-                transition={{ type: "spring", stiffness: 480, damping: 36 }}
-                className="relative rounded-xl border border-border p-3 sm:rounded-none sm:border-0 sm:p-0"
-              >
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1.5fr)_6.5rem_minmax(0,1.1fr)_minmax(0,1fr)_7.25rem_2.25rem]">
-                  <Input
-                    aria-label={`Row ${idx + 1} name`}
-                    placeholder="e.g. Lunch at Kolachi"
-                    value={r.name}
-                    autoFocus={r.key === focusKey}
-                    onChange={(e) => update(r.key, { name: e.target.value })}
-                    aria-invalid={errs.name || undefined}
-                    className="col-span-2 h-10 pr-10 aria-[invalid=true]:border-destructive sm:col-span-1 sm:pr-3.5"
-                  />
-                  <Input
-                    aria-label={`Row ${idx + 1} amount`}
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    placeholder="0"
-                    value={r.amount}
-                    onChange={(e) => update(r.key, { amount: e.target.value })}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        if (idx === rows.length - 1) addRow();
-                      }
-                    }}
-                    aria-invalid={errs.amount || undefined}
-                    className="tnum h-10 aria-[invalid=true]:border-destructive"
-                  />
-                  <Select
-                    value={r.category_id ? String(r.category_id) : undefined}
-                    onValueChange={(v) => update(r.key, { category_id: Number(v) })}
-                  >
-                    <SelectTrigger
-                      aria-label={`Row ${idx + 1} category`}
-                      aria-invalid={errs.category || undefined}
-                      className="h-10 aria-[invalid=true]:border-destructive"
-                    >
-                      <SelectValue placeholder="Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories?.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>
-                          <span className="flex min-w-0 items-center gap-2">
-                            <CategoryIcon icon={c.icon} className="h-4 w-4 shrink-0" />
-                            <span className="truncate">{c.name}</span>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <DatePicker
-                    aria-label={`Row ${idx + 1} date`}
-                    id={r.key}
-                    value={r.date}
-                    onChange={(d) => update(r.key, { date: d })}
-                    aria-invalid={errs.date}
-                    triggerClassName="h-10"
-                  />
-                  <Input
-                    aria-label={`Row ${idx + 1} time`}
-                    type="time"
-                    value={r.time}
-                    onChange={(e) => update(r.key, { time: e.target.value })}
-                    aria-invalid={errs.time || undefined}
-                    className="tnum h-10 px-3 aria-[invalid=true]:border-destructive"
-                  />
-                  <motion.button
-                    type="button"
-                    aria-label={`Remove row ${idx + 1}`}
-                    onClick={() => removeRow(r.key)}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.88 }}
-                    transition={{ type: "spring", stiffness: 600, damping: 26 }}
-                    className="absolute right-4 top-[1.15rem] flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring sm:static sm:h-10 sm:w-9"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </motion.button>
-                </div>
-
-                <AnimatePresence initial={false}>
-                  {r.warnings.length > 0 && (
-                    <motion.p
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="flex items-center gap-1.5 overflow-hidden pt-1.5 text-xs text-amber-600 dark:text-amber-400"
-                    >
-                      <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                      {r.warnings.join(" · ")}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
+          {rows.map((r, idx) => (
+            <BulkRow
+              key={r.key}
+              row={r}
+              index={idx}
+              isLast={idx === rows.length - 1}
+              autoFocus={r.key === focusKey}
+              errors={submitted ? errorsByKey.get(r.key) : undefined}
+              categories={categories}
+              onUpdate={update}
+              onRemove={removeRow}
+              onAddRow={addRow}
+            />
+          ))}
         </AnimatePresence>
       </div>
 
@@ -398,3 +312,150 @@ export function BulkExpenseForm({ onSuccess }: { onSuccess: () => void }) {
     </div>
   );
 }
+
+interface BulkRowProps {
+  row: Row;
+  index: number;
+  isLast: boolean;
+  autoFocus: boolean;
+  errors: RowErrors | undefined;
+  categories: Category[] | undefined;
+  onUpdate: (key: string, patch: Partial<Row>) => void;
+  onRemove: (key: string) => void;
+  onAddRow: () => void;
+}
+
+const NO_ERRORS: RowErrors = {};
+
+const sameErrors = (a: RowErrors = NO_ERRORS, b: RowErrors = NO_ERRORS) =>
+  a.name === b.name &&
+  a.amount === b.amount &&
+  a.category === b.category &&
+  a.date === b.date &&
+  a.time === b.time;
+
+/**
+ * One grid row. Memoised so a keystroke re-renders (and re-measures for the
+ * layout animation) only the row being typed in, not the whole grid.
+ */
+const BulkRow = memo(
+  forwardRef<HTMLDivElement, BulkRowProps>(function BulkRow(
+    { row: r, index, isLast, autoFocus, errors, categories, onUpdate, onRemove, onAddRow },
+    ref,
+  ) {
+    const errs = errors ?? NO_ERRORS;
+    return (
+      <motion.div
+        ref={ref}
+        layout
+        initial={{ opacity: 0, y: -8, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, x: 24, scale: 0.96, transition: { duration: 0.16 } }}
+        transition={{ type: "spring", stiffness: 480, damping: 36 }}
+        className="relative rounded-xl border border-border p-3 sm:rounded-none sm:border-0 sm:p-0"
+      >
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,1.5fr)_6.5rem_minmax(0,1.1fr)_minmax(0,1fr)_7.25rem_2.25rem]">
+          <Input
+            aria-label={`Row ${index + 1} name`}
+            placeholder="e.g. Lunch at Kolachi"
+            value={r.name}
+            autoFocus={autoFocus}
+            onChange={(e) => onUpdate(r.key, { name: e.target.value })}
+            aria-invalid={errs.name || undefined}
+            className="col-span-2 h-10 pr-10 aria-[invalid=true]:border-destructive sm:col-span-1 sm:pr-3.5"
+          />
+          <Input
+            aria-label={`Row ${index + 1} amount`}
+            type="number"
+            inputMode="numeric"
+            min={1}
+            placeholder="0"
+            value={r.amount}
+            onChange={(e) => onUpdate(r.key, { amount: e.target.value })}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (isLast) onAddRow();
+              }
+            }}
+            aria-invalid={errs.amount || undefined}
+            className="tnum h-10 aria-[invalid=true]:border-destructive"
+          />
+          <Select
+            value={r.category_id ? String(r.category_id) : undefined}
+            onValueChange={(v) => onUpdate(r.key, { category_id: Number(v) })}
+          >
+            <SelectTrigger
+              aria-label={`Row ${index + 1} category`}
+              aria-invalid={errs.category || undefined}
+              className="h-10 aria-[invalid=true]:border-destructive"
+            >
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories?.map((c) => (
+                <SelectItem key={c.id} value={String(c.id)}>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <CategoryIcon icon={c.icon} className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{c.name}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <DatePicker
+            aria-label={`Row ${index + 1} date`}
+            id={r.key}
+            value={r.date}
+            onChange={(d) => onUpdate(r.key, { date: d })}
+            aria-invalid={errs.date}
+            triggerClassName="h-10"
+          />
+          <Input
+            aria-label={`Row ${index + 1} time`}
+            type="time"
+            value={r.time}
+            onChange={(e) => onUpdate(r.key, { time: e.target.value })}
+            aria-invalid={errs.time || undefined}
+            className="tnum h-10 px-3 aria-[invalid=true]:border-destructive"
+          />
+          <motion.button
+            type="button"
+            aria-label={`Remove row ${index + 1}`}
+            onClick={() => onRemove(r.key)}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.88 }}
+            transition={{ type: "spring", stiffness: 600, damping: 26 }}
+            className="absolute right-4 top-[1.15rem] flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring sm:static sm:h-10 sm:w-9"
+          >
+            <Trash2 className="h-4 w-4" />
+          </motion.button>
+        </div>
+
+        <AnimatePresence initial={false}>
+          {r.warnings.length > 0 && (
+            <motion.p
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="flex items-center gap-1.5 overflow-hidden pt-1.5 text-xs text-amber-600 dark:text-amber-400"
+            >
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+              {r.warnings.join(" · ")}
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    );
+  }),
+  (prev, next) =>
+    prev.row === next.row &&
+    prev.index === next.index &&
+    prev.isLast === next.isLast &&
+    prev.autoFocus === next.autoFocus &&
+    prev.categories === next.categories &&
+    prev.onUpdate === next.onUpdate &&
+    prev.onRemove === next.onRemove &&
+    prev.onAddRow === next.onAddRow &&
+    sameErrors(prev.errors, next.errors),
+);
