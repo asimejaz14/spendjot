@@ -21,7 +21,7 @@ export function SummaryCards({
       {/* Hero — the headline figure. */}
       <StaggerItem className="col-span-2 lg:col-span-1">
         <HoverLift className="h-full" lift={4}>
-          <div className="ring-sheen relative flex h-full flex-col justify-between overflow-hidden rounded-2xl bg-brand-mesh p-5 text-white shadow-glow">
+          <div className="ring-sheen relative flex h-full flex-col justify-between overflow-hidden rounded-2xl bg-[hsl(var(--brand-2))] p-5 text-white shadow-glow">
             {/* soft top-light */}
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_20%_0%,rgba(255,255,255,0.28),transparent_60%)]" />
             <p className="relative text-sm font-medium text-white/85">
